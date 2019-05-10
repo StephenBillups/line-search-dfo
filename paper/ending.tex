@@ -2,10 +2,18 @@
 
 \section{Results}
 
-\subsection{Sample problem}
-We have tested these algorithms on a simple problem.
-We wish to expand this problem to other test cases that may show more advantages disadvantages of the most promising algorithms.
-Here we let $f(x) = \epsilon x + (1-\epsilon)(y - \alpha x \sin(\gamma x))^2$ for a fixed constant $\epsilon$, and set the constraints to be
+\subsection{Practical Modification}
+We still experienced a problem with iterates coming too close to the boundary of the feasible region.
+Another way of dealing with this is to shift the constraints closer to the current iterate.
+Namely, we introduce a parameter $\upsilon$ to determine how far to scale the constraints.
+Then, within the trust region subproblem, we add constraints of $Ax \le b\upsilon + (1-\upsilon) A\iteratek$.
+Before doing this, the rows of $A$ are normalized.
+This produces the buffered segment searches withing the results.
+
+
+\subsection{Sample Problem}
+The first test was on a problem with simple constraints and a pathological objective.
+We let $f(x) = \epsilon x + (1-\epsilon)(y - \alpha x \sin(\gamma x))^2$ for a fixed constant $\epsilon$, and set the constraints to be
 $x_2 \le ax_1$, $x_2 \ge -ax_1$ for a fixed constant $a$.
 
 We summarize the number of function evaluations and iterations taken here:
@@ -25,7 +33,7 @@ Shape & Search & Num. Segments & Basis & Iterations & Evaluations \\
   circumscribed ellipsoid &       none &       &  quadratic &  41  &   104  &   41 &  105 \\
                 ellipsoid &   anywhere &       &     linear &  65  &   109  &   67 &  110 \\
                 ellipsoid &   anywhere &       &  quadratic &  66  &   170  &   67 &  185 \\
-                ellipsoid &  anywhere* &       &  quadratic &  61  &   157  &   60 &  155 \\
+%                ellipsoid &  anywhere* &       &  quadratic &  61  &   157  &   60 &  155 \\
                 ellipsoid &       none &       &     linear &  53  &    65  &   50 &   52 \\
                 ellipsoid &       none &       &  quadratic &  53  &    88  &   50 &   75 \\
                 ellipsoid &    segment &     1 &     linear &  55  &    70  &   58 &   75 \\
@@ -73,11 +81,6 @@ Shape & Search & Num. Segments & Basis & Iterations & Evaluations \\
 %                  simplex & max volume &       &     linear &    41 &    44 \\
 %                  simplex & max volume &       &  quadratic &    41 &    94 \\
 
-
-
-
-
-
 \end{tabular}
 \end{center}
 
@@ -87,13 +90,18 @@ In general, the linear models converge more quickly than quadratic models.
 We see that the method with fewest iterations and function evaluations is the linear polyhedral shape.
 This is likely due to the fact that the polyhedral shape is allowed to search the entire outer trust region.
 This also explains why the circumscribed ellipse and maximum volume simplex also perform well.
-We also notices that with a simple heuristic we were able to improve the ellipse slightly from 170 to 157.
+%We also notices that with a simple heuristic we were able to improve the ellipse slightly from 170 to 157.
 Also, the scaled ellipsoid performs comparably to the unscaled version.
 
-We have also tested on several problems from the Hot-Schittkowski problem set (INCLUDE THE TWO REFERENCES).
-These are problems have linear constraints.
+\subsection{Schittkowksi Test Problems for Nonlinear Optimization}
 
 
+We tested these algorithms on several problems from the Hot-Schittkowski problem set \cite{Schittkowski:1987:MTE:27135}, \cite{Hock1980}.
+We selected the problems that have linear constraints: 21, 24, 25, 35, 36, 44, 45, 76, 224, 231, 232, 250, 251.
+
+% 37 was left out because it proved to be difficult.
+
+We summarize the results here.
 \begin{tiny}
 
 \begin{center}
@@ -201,6 +209,33 @@ Algorithm & Prob. & n & Message & N. It. & N. Eval. & Ret. Min. & Min. & Solutio
 
 
 \end{tiny}
+
+In order to better evaluate the algorithms on the problems across in this test set, we use a performance profile developed in \cite{More:2009:BDO:1654367.1654371}.
+Given a set of Solvers $\mathcal S$ that solved a set of problems $\mathcal P$ with the number of evaluations of solver $s$ on problem $p$ being $N(s, p)$, the performance ratio is defined to be $r(s, p) = \frac{N(s, p)}{\min_{s \in \mathcal S} N(s, p)}$.
+If the algorithm does not complete, then the number of evaluations is set to $\infty$.
+The performance profile of a solver $s$ and parameter $\alpha \in [0, \infty)$ is then the number of problems for which the performance ratio is less than or equal to $\alpha$: 
+
+\begin{align}
+\rho(s, \alpha) = \frac 1 {\|\mathcal P \|} \|p \in \mathcal P | r(s, p) \le \alpha\|.
+\end{align}
+
+The $y$ axis of a performance plot is the performance profile, and the $x$ axis is the parameter $\alpha$.
+Note that algorithms with high performance profiles for small values of $alpha$ solved a large number of problems the most with the fewest evaluations, while algorithms that eventually reach high performance profiles with larger values of $\alpha$ solve a large set of problems.
+The performance profile for the Hot-Schittkowski problem set is give in figure \cref{performance_profile}.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/performance_profile_plot.png}
+    \caption{Performance profile}
+    \label{performance_profile}
+\end{figure}
+
+
+
+The line segment search with 5 segments does not solve many problems, this is because several of the problems have dimension less than $5$, so that it was not even ran on these.
+Notice that the polyhedral search does very well.
+We conjecture that this may not hold with modelled, nonlinear constraints.
 
 
 %Add another column for $a$.

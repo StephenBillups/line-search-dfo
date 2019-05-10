@@ -19,7 +19,7 @@ where $\domain$ is a subset of $\real^n$, and $f$ and $c_i, i \in \mathcal{I} \c
 % In the first variation, we assume that the constraints are fully quantifiable.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 As in \cite{DUMMY:typesofconstraints}, partially quantifiable means that all of the functions can be evaluated at any point in $X$ and that the values returned for the constraint functions provide meaningful information about how close the point is to a constraint boundary.
-We assume that the black-box functions return meaningful numerical values only when evaluated at feasible points. In this case, the constraints are called {\em partially quantifiable}.   
+We assume that the black-box functions return meaningful numerical values \emph{only} when evaluated at feasible points. In this case, the constraints are called {\em partially quantifiable}.   
 
 We are interested in developing {\em model-based} trust-region algorithms for solving these problems.
 Model-based methods work by constructing model functions to approximate the black box functions at each iteration.
@@ -58,7 +58,7 @@ As a first step toward developing an algorithm to solve such problems, we consid
 
 Algorithms that maintain feasibility in both the iterates and sample points provide some useful qualities.
 Firstly, they are able to solve problems with \emph{partially-quantifiable} constraints.
-One scenario in which partially-quantifiable constrains may arise is within the problem of minimizing an expensive simulation.
+One scenario in which partially-quantifiable constraints may arise is within the problem of minimizing an expensive simulation.
 
 %\begin{center}
 %\includegraphics[width=200px]{images/infeasible_constraint.png}
@@ -69,38 +69,36 @@ However, when the simulation does complete, its runtime is quantifiable, and can
 An algorithm that wishes to minimize this simulation is forced to account for this constraint.
 
 
-Additionally, an always feasible algorithm is also an \emph{any-time} algorithm.
+An always feasible algorithm is also an \emph{any-time} algorithm.
 Anytime algorithms are a class of algorithms that can conveniently be run as long as desired and return the best solution found so far if interrupted.
 These algorithm are of practical importance when problems have uncertain time complexity.
 
 
 \subsection{Notation}
 
- that depend on the iteration will be subscripted by $k$.
-For example, the $k$-th iterate is given by $\iteratek$, and the $\modelk$.
+Any variables that depend on the iteration will be super-scripted by $k$.
+For example, the $k$-th iterate is given by $\iteratek$, and the model of the objective is given by $\modelk$.
 The $i$ row of the matrix $A$ is denoted $A_i$, while the $i$-th column is denoted $A_{\bullet i}$.
-$\tau$ is used as a threshold.
 Subscripts on vectors are used as an index into the vector, while vectors in a sequence of vectors use superscripts.
-Matrices are capital.
-Sets are capital italic.
-
+Matrices are capital, while sets are capital italic.
+We will use $e_i$ to denote is the unit vector.
 $\domain$ is the domain.
-$\modelk$ is a model function of the objective at iteration $k$.
-$e_i$ is the unit vector.
+$B_k(c; \Delta)$ is the ball of radius $\Delta$ centered at point $c$ in the $k$ norm.
+Finally, $\delta_{i,j}$ is the kronecker delta function, $\delta_{i,i} = 1$, $\delta_{i,j} = 0$ if $i\ne j$.
 
-$c_i$ are the constraints $\forall i \in \mathcal{I} \cup \mathcal{E} $.
+
 $\modelconstrainti$ is the model of constraint $i$ at iteration $k$.
 
+
+
+$\tau$ is used as a threshold.
+$c_i$ are the constraints $\forall i \in \mathcal{I} \cup \mathcal{E} $.
 $\mathcal{I}$ is the index set of the inequality constraints.
 $\mathcal{E}$ is the index set of the equality constraints.
-
 $Y$ is the set of sample points.
 $\trialk$ is the trial point in iteration $k$.
 $\chik$ is the criticality measure in iteration $k$.
 $\feasible$ is the feasible region.
-$B_k(c; \Delta)$ is the ball of radius $\Delta$ centered at point $c$ in the $k$ norm.
-$\delta_{i,j}$ is the kronecker delta function, $\delta_{i,i} = 1$, $\delta_{i,j} = 0$ if $i\ne j$.
-
 
 
 \subsection{Model-based Trust Region Methods}
@@ -112,7 +110,7 @@ Next, this model function is minimized over the trust region and the minimum arg
 The objective is evaluated at the trial point and a measure of reduction $\rho$ is computed.
 If $\rho$ implies that sufficient reduction has been made and that the model approximates the function well, the trial point is accepted as the new iterate.
 Otherwise, the trust region is reduced to increase model accuracy.
-The algorithm terminates when both and a criticality measure $\chik$ and the trust region radius $\Delta_k$ reach a sufficiently small thresholds.
+The algorithm terminates when both and a criticality measure $\chik$ and the trust region radius $\Delta_k$ reach sufficiently small thresholds of $\tau_{\chi}$ and $\tau_{\Delta}$.
 
 
 For unconstrained optimization, the algorithmic framework can be described in algorithm \cref{unconstrained_dfo}.
@@ -130,17 +128,17 @@ For unconstrained optimization, the algorithmic framework can be described in al
     \label{unconstrained_dfo}
     \begin{itemize}
         \item[\textbf{Step 0}] \textbf{(Initialization)} \\
-            Initialize tolerance constants $\tau_{\xi} > 0$, $\tau_{\Delta} > 0$, starting point $x^{(0)}$, initial radius $\Delta_0 > 0$, iteration counter $k=0$, and constants $\omegadec \in (0, 1)$, $ \gammasm \in (0, 1)$, $\gammabi \in (\gammasm, 1)$.
+            Initialize tolerance constants $\tau_{\chi} > 0$, $\tau_{\Delta} > 0$, starting point $x^{(0)}$, initial radius $\Delta_0 > 0$, iteration counter $k=0$, and constants $\omegadec \in (0, 1)$, $ \gammasm \in (0, 1)$, $\gammabi \in (\gammasm, 1)$.
             
         \item[\textbf{Step 1}] \textbf{(Construct the model function)} \\
             Call the model improvement algorithm ``\cref{model_improving_algorithm}" to provide a set of sample points $Y^{(k)}$.
-            Evaluate the objective on these points and use interpolation \cref{interpolation_formula} to construct $\modelk(x)$.
+            Evaluate the objective on these points and use interpolation \cref{interpolation_formula} to construct the model function $\modelk(x)$.
         
         \item[\textbf{Step 2}] \textbf{(Check stopping criteria)} \\
             Compute the criticality measure $\chik$ such as $\chik = \|\nabla\modelk(\iteratek)\|$. \begin{itemize}
                 \item[] If $ \chik < \tau_{\xi} $ and $\Delta_k<\tau_{\Delta}$ then return solution $\iteratek$.
                 \item[] If $ \chik < \tau_{\xi} $ but $\Delta_k\ge\tau_{\Delta}$ then  
-                $\Delta_{k+1} \gets \omegadec\Delta_{k}$, 
+                set $\Delta_{k+1} \gets \omegadec\Delta_{k}$, 
                 $x^{(k+1)} \gets \iteratek$,
                 $k \gets k+1$ and go to Step 1.
             \end{itemize}
@@ -159,7 +157,7 @@ For unconstrained optimization, the algorithmic framework can be described in al
     \end{itemize}
 \end{algorithm}
 
-The key additional steps of this algorithm that are introduced for derivative free optimization are
+The key additional steps of this algorithm that are not present in a classical trust region algorithm but introduced for derivative free optimization are
 \begin{enumerate}
     \item Models are constructed without derivative information.
     \item The trust region radius $\Delta_k$ must go to zero as $k\to\infty$.
@@ -232,7 +230,7 @@ Another recent review can be found in \cite{DUMMY:review2}.
 
 \subsection{Model Based Algorithms}
 
-\subsubsection{Sampling issues}
+\subsubsection{Sampling Issues}
 
 Derivative free trust region algorithms can choose sampling points to construct their model functions.
 When this is done, care must be taken to avoid issues with two important aspects: their \emph{geometry} and \emph{proximity}.
@@ -262,10 +260,10 @@ If we define the Vandermode matrix as
 \label{vandermonde}
 V=
 \begin{bmatrix}
-    \phi_1(y^0)      & \phi_2(y^0)       & \ldots & \phi_{p}(y^0)      \\
-    \phi_1(y^1)      & \phi_2(y^1)       & \dots  & \phi_{p}(y^1)      \\
+    \phi_0(y^0)      & \phi_1(y^0)       & \ldots & \phi_{p}(y^0)      \\
+    \phi_0(y^1)      & \phi_1(y^1)       & \dots  & \phi_{p}(y^1)      \\
                      &                   & \vdots &                    \\
-    \phi_1(y^{p})    & \phi_2(y^{p})     & \ldots & \phi_{p}(y^{p})
+    \phi_0(y^{p})    & \phi_1(y^{p})     & \ldots & \phi_{p}(y^{p})
 \end{bmatrix},
 \end{align}
 
@@ -290,7 +288,7 @@ V
 \paragraph{Geometry}
 \label{geometry}
 The term \emph{geometry} describes how the ``shape" of any $p+1$ sample points $Y = \{y^0, y^1, \ldots, y^p\}$ affects the model's accuracy.
-This system has a unique solution if and only if $V$ is nonsingular, so that we are able to solve this system of equations to determine our model functions.
+System \cref{interpolation_formula} has a unique solution if and only if $V$ is nonsingular, so that we are able to solve this system of equations to determine our model functions.
 However, even when $V$ is nonsingular but ``close" to singular, as measured by its condition number, the model's approximation may become less accurate.
 % The condition number of $V$ measures how far the current Vandermode matrix is from being illpoised.
 Algorithms must be careful to avoid choices of sample points $Y$ that cause the condition number of this matrix to be poor.
@@ -336,7 +334,6 @@ $\kappa_{ef}, \kappa_{ef}$, and $\kappa_{ef}$ are constants depending only on th
 
 %used to find the coefficients $\lambda$ to express the model function in terms of a basis of Lagrange polynomials $l_i$
 Problems become apparent when comparing the Lagrange polynomials associated with a poised set with those of an ill poised set.
-
 In figure \cref{pvip}, a set of quadratic polynomials used to interpolate the function $f(x) = 5 + x + y + (x + y) ^ 2 - \frac 1 {250} y ^ 4$.
 We can see that the difference between the model and $f$ are much larger when the points are chosen to be nearly collinear resulting in a much higher $\Lambda$.
 
@@ -349,17 +346,14 @@ We can see that the difference between the model and $f$ are much larger when th
 \end{figure}
 
 
-\begin{center}
-
-\end{center}
-
 A more detailed discussion can be found in \cite{doi:10.1080/10556780802409296}, but a step to ensure geometry is required for convergence analysis although it may come at the expense of function evaluations.
 
 \paragraph{Geometry Ensuring Algorithms}
 
-In order to ensure that the sample points maintain good geometry, sample points are chosen .
+Sample points are chosen by a geometry ensuring algorithm.
 At any given time, the algorithm has evaluated 0 or more sample points.
-These points should be reused when possible, but the algorithm may have to replace some points that are no longer well poised as well as select new points when the sample set is not large enough.
+Initially, only the starting point $x_0$ is evaluated, so that points must be added.
+Evaluated points should be reused when possible, but the algorithm may have to replace some points that are no longer well poised when other new points are selected.
 We call the algorithm that add adds points, replacing where necessary, the model improvement algorithm.
 One classic such algorithm is presented in \cite{DUMMY:intro_book}.
 
@@ -388,14 +382,14 @@ We choose a threshold $0 < \ximin < 1$, and follow \cref{model_improving_algorit
         
         \item[\textbf{Step 2}] \textbf{(Check threshold)} \begin{itemize}
                 \item[] If $|V_{i,i}| < \ximin$ then \label{next_point} $ \hat y = \argmax_{t | \|t\|\le 1} |\phi_i(t)|$.
-                \item[] Replace row $i$ with $V_{i} \gets \hat y$.
+                \item[] Replace row $i$ with $V_{i, j} \gets \phi_j(\hat y)$.
             \end{itemize}
         
         \item[\textbf{Step 3}] \textbf{(LU)} \begin{itemize}
                 \item[] Set $V_i \gets \frac{1}{V_{i,i}} V_i$
                 \item[] Set $V_{\bullet j} \gets V_{\bullet j} - V_{i,j} V_{\bullet j} \forall j=i \ldots p$
             \end{itemize}
-            $i \gets i+1$
+            Set $i \gets i+1$
             Go to step 1 unless $i = p$
     \end{itemize}
 \end{algorithm}
@@ -403,14 +397,14 @@ We choose a threshold $0 < \ximin < 1$, and follow \cref{model_improving_algorit
 \paragraph{Proximity}
 
 Proximity refers to the trust region radius.
-The trust region must go to zero if we are to be sure that we have reached a critical point.
+The trust region must go to zero if we are to be sure we have reached a critical point.
 In general, the smaller the trust region, the closer to linear or quadratic the original function will look.
-This is because the model's error term given is proportional to the trust region radius.
+This is because the model's error term is proportional to the trust region radius.
 
 In classical trust region algorithms, there is no need for the trust region radius to go to zero.
-Therefore, extra care must be taken to ensure this while modifying these algorithms.
+Therefore, extra care must be taken to ensure this while modifying such algorithms.
 
-\subsubsection{Assessing model accuracy and radius management}
+\subsubsection{Assessing Model Accuracy and Radius Management}
 Each iteration that evaluates a trial point must also test the accuracy of the model functions.
 To perform this test, we calculate a quantity
 \begin{equation}
@@ -418,11 +412,11 @@ To perform this test, we calculate a quantity
 \rho_k = \frac{f(\iteratek) - f(\iteratek+\trialk)}{\modelk(\iteratek) - \modelk(\iteratek+\trialk)}
 \end{equation}
 which measures the actual improvement over the predicted improvement.
-A small $\rho_k$ implies the model functions are not sufficiently accurate,
-values of $\rho_k$ close to $1$ imply that the model accurately predicted the new objective value,
-and a large $\rho_k$ implies progress minimizing the objective although the model was not accurate.
+A small $\rho_k$ implies the model functions are not sufficiently accurate.
+Values of $\rho_k$ close to $1$ imply that the model accurately predicted the new objective value.
+A large $\rho_k$ implies progress minimizing the objective although the model was not accurate.
 This has been widely used within trust region frameworks such as \cite{Conn:2000:TM:357813} and within a derivative free context \cite{DUMMY:intro_book}.
-Generally speaking, fixed constants $0 < \gammasm \le \gammabi \le 1$ as thresholds on $\rho_k$ and $0 < \omega_{\text{dec}} < 1 \le \omega_{\text{inc}}$ as decrement or increment factors are supplied by the user and determine the trust region update policy.
+The user supplies fixed constants $0 < \gammasm \le \gammabi \le 1$ as thresholds on $\rho_k$ and $0 < \omega_{\text{dec}} < 1 \le \omega_{\text{inc}}$ as decrement or increment factors to determine the trust region update policy.
 The update policy frequently follows Step 4 within algorithm \cref{unconstrained_dfo} repeated within \cref{trust_region_update} for ease.
 
 \begin{algorithm}[H]
@@ -431,9 +425,9 @@ The update policy frequently follows Step 4 within algorithm \cref{unconstrained
     \begin{itemize}
         \item[\textbf{Step 4}] \textbf{(Test for improvement)} \\
             Compute $\rho_k$ with \cref{rho} \begin{itemize}
-                \item[] If $\rho_k < \gammasm$ then $\iteratekpone \gets \iteratek$ (reject) and $\Delta_{k+1} \gets \omegadec\Delta_{k}$
-                \item[] If $\rho_k \ge \gammasm$ and $\rho < \gammabi$ then $\iteratekpone\gets\iteratek+\trialk$ (accept) $\Delta_{k+1} \gets \omegadec\Delta_{k}$
-                \item[] If $\rho_k \ge \gammabi$ and $\|\trialk\| = \Delta_{k}$ then $\iteratekpone=\iteratek+\trialk$ (accept) $\Delta_{k+1} \gets \omegainc\Delta_{k}$
+                \item[] If $\rho_k < \gammasm$ then set $\iteratekpone \gets \iteratek$ (reject) and $\Delta_{k+1} \gets \omegadec\Delta_{k}$
+                \item[] If $\rho_k \ge \gammasm$ and $\rho < \gammabi$ then set $\iteratekpone\gets\iteratek+\trialk$ (accept) and $\Delta_{k+1} \gets \omegadec\Delta_{k}$
+                \item[] If $\rho_k \ge \gammabi$ and $\|\trialk\| = \Delta_{k}$ then set $\iteratekpone=\iteratek+\trialk$ (accept) and $\Delta_{k+1} \gets \omegainc\Delta_{k}$
                 % and either increase the radius or decrease if $\nabla \modelk(\iteratek)$ is small
             \end{itemize}
             $k \gets k+1$ and go to Step 1.
@@ -491,7 +485,7 @@ The criticality measure measures how far a point is from satisfying the first or
 Namely, when $ \chik(x) = 0$, we have $x = \text{Proj}_{\feasiblek}(x - \nabla \modelk(x))$ so that there is no decent direction along $\nabla \modelk(x)$ as it points away from the feasible region.
 As $\Delta_k$ gets smaller, we also have that $\modelk$ better represents $\nabla f$, so that $\nabla f$ will also either be zero or lie in the iterate's normal cone.
 
-\subsubsection{Sufficient reduction of model}
+\subsubsection{Sufficient Model Reduction}
 
 Within each iteration, it will be convenient to ensure sufficient reduction of the objective's model function.
 We adopt the following condition:
@@ -506,7 +500,7 @@ This is widely used within trust region frameworks such as \cite{Conejo:2013:GCT
 It can be shown that the \emph{generalized Cauchy point} satisfies this condition.
 
 
-\subsubsection{Trust regions}
+\subsubsection{Trust Regions}
 Our algorithm maintains two trust regions.
 The outer trust region is an $L_1$ ball of radius $\Delta_k$ defined by
 \begin{equation}
@@ -543,7 +537,7 @@ In either case, work to find a point satisfying \cref{efficiency} and
 \label{accuracy}
 \|\nabla \modelk(\iteratek) - \nabla f(\iteratek) \| \le \kappa_g \Delta_k
 \end{equation}
- for some fixed constant $\kappa_g$ is a fixed constant independent of $k$.
+ for some fixed constant $\kappa_g$ independent of $k$.
 
  
 
@@ -556,7 +550,7 @@ The classical methods for ensuring good geometry require an optimization call to
 This is no longer possible in the second strategy.
 However, the bounds produced over the entire trust region may also be stronger than required as the models will only be used on the feasible region.
 This may mean the geometric requirements can be reduced.
-Looking again at the ill-poised set, the set of nearly collinear sample points actually does appear to be accurate over a smaller trust region:
+Looking again at the ill-poised set in figure \cref{aoip}, the set of nearly collinear sample points actually does appear to be accurate over a smaller trust region.
 
 
 \begin{figure}[h]
@@ -599,13 +593,13 @@ This saves the computation of $\innertrk$ when it is not needed, as there are no
 % \end{itemize}
 
 As a first step toward solving a general convex derivative free problem with partially-quantifiable constraints,
-we solve a simpler problem with $\domain = R^n$ and $c(x) = Ax-b$ for some $A$ and $b$.
-This means that we can let the feasible region be denoted $\feasible = \{x \in \mathbb R^n | \quad  Ax \le b \}$.
+we solve a simpler problem with $\domain = R^n$ and $c(x) = Ax-b$ for some $m\times n$ matrix $A$ and a vector $b\in \mathbb R^m$:
 
 \[ \begin{array}{ccl} \min_{x \in \mathbb R^n} & f(x) \\
 & Ax \le b & 
 \end{array}
 \]
+This means that we can let the feasible region be denoted $\feasible = \{x \in \mathbb R^n | \quad  Ax \le b \}$.
 We assume that $A$ has full row rank, and that  $dim(A) = n$.
 
 \subsection{Algorithm Template}
@@ -650,7 +644,7 @@ Although some details depend on the particular choice of $\innertrk$, we follow 
         
         \item[\textbf{Step 3}] \textbf{(Solve the trust region subproblem)} \\
             Compute $\trialk = \min_{s \in \innertrk \cap \domain} \modelk(\iteratek + \trialk)$.
-            This can also be $\trialk = \min_{s \in \outertrk \cap \domain} \modelk(\iteratek + \trialk)$ depending on the choice made in \cref{which_trust_region}.
+            \item[] This can also be $\trialk = \min_{s \in \outertrk \cap \domain} \modelk(\iteratek + \trialk)$ depending on the choice made in \cref{which_trust_region}.
             
         \item[\textbf{Step 4}] \textbf{(Test for improvement)} \\
             Evaluate $f(\iteratek + \trialk)$ and construct $\rho_k$ as in \cref{rho} \begin{itemize}
@@ -666,10 +660,10 @@ Although some details depend on the particular choice of $\innertrk$, we follow 
 Much of the work is deferred to the \emph{ConstructTrustRegion} subroutine.
 We will describe several different approaches we have taken for this subroutine.
 For convergence analysis, \cref{accuracy} must be satisfied by the trust region choice in this method.
-Not all searches for an inner trust region must guarantee this: the algorithm is allowed to try a bounded number of trust regions as long as one is gauranteed to satisfy these conditions.
+%Not all searches for an inner trust region must guarantee this: the algorithm is allowed to try a bounded number of trust regions as long as one is gauranteed to satisfy these conditions.
 In some cases, multiple inner trust regions may be considered before returning the best trust region found.
-An efficient algorithm may first heuristically search for a good trust region if the guaranteed method is expensive.
-This may not involve constructing a model or function evaluations.
+% An efficient algorithm may first heuristically search for a good trust region if the guaranteed method is expensive.
+% This may not involve constructing a model or function evaluations.
 
 
 \subsection{First Approach: Bumping $\xi$}
@@ -678,9 +672,9 @@ That is, we add the outer constraints to the model improvement algorithm to sele
 We will let search space for this optimization problem be the feasible region intersect the trust region: $\outerfritr = \feasiblek \cap \outertrk $.
 
 The problem lies in finding sufficiently poised sample points.
-The classical model based algorithm uses a parameter $\xi$ as a lower bound of the pivot values of the Vandermonde matrix.
+The classical model based algorithm uses a parameter $  \ximin $ as a lower bound of the pivot values of the Vandermonde matrix.
 When requiring points to live within $ \outerfritr $, it can happen that even after replacing a point, we still have not satisfied this bound.
-In figure \cref{lspc}, for some values of $\xi$, there is point in $ \outerfritr $ that will leave a sufficiently large pivot.
+In figure \cref{lspc}, for some values of $  \ximin $, there is point in $ \outerfritr $ that will leave a sufficiently large pivot.
 
 \begin{figure}[h]
     \centering
@@ -691,7 +685,8 @@ In figure \cref{lspc}, for some values of $\xi$, there is point in $ \outerfritr
 
 %As the number of dimensions grows the ratio of volume of the trust region intersect the feasible region to the feasible region can become smaller.
 
-One way to handle this is to simply allow $\xi$ to decrease. (Possibly, until a threshold is reached for maintaining a fixed $\Lambda$.)
+One way to handle this is to introduce a $\xi_{\text{cur}}$ which is allowed to decrease.
+(Possibly, until a threshold is reached for maintaining a fixed $\Lambda$.)
 If the new point does not improve the geometry of the set significantly, then there is no other point that would do better.
 In this case, we cannot do better and simply proceed with our current point.
 
@@ -699,7 +694,7 @@ Alternatively, we can check how much the next point will improve the current piv
 
 
 
-\subsubsection{Requiring sufficient model improvement}
+\subsubsection{Requiring Sufficient Model Improvement}
 
 We introduce a constant $0<\delta_{\text{improv}}$ and require that a new point must improve the current pivot by more than $\delta_{\text{improv}}$.
 The new modified improvement algorithm is described in \cref{modified_model_improving_algorithm}:
@@ -723,7 +718,7 @@ The new modified improvement algorithm is described in \cref{modified_model_impr
                 \item[] If $|V_{i,i}| \ge \xi_{\text{cur}} $ then go to Step 3
                 \item[] $ \hat y = \arg\max_{t \in \innertrk \cap X} |\phi_i(t)|$
                 \item[] If $\label{impossibly_poised} |\phi_i(\hat y)| < \ximin$ then \textbf{fail}
-                \item[] If $\xi_{\text{cur}} - |\phi_i(\hat y)| > \delta_{\text{improv}} \xi_{\text{cur}}$ then replace $V_i$ with $\hat y$ and $\xi_{\text{cur}} \gets |\phi_i(\hat y)|$
+                \item[] If $\xi_{\text{cur}} - |\phi_i(\hat y)| > \delta_{\text{improv}} \xi_{\text{cur}}$ then replace $V_{i,j}$ with $\phi_j(\hat y)$ and $\xi_{\text{cur}} \gets |\phi_i(\hat y)|$
             \end{itemize}
         
         \item[\textbf{Step 3}] \textbf{(LU)} \begin{itemize}
@@ -747,7 +742,7 @@ That is, for a given set of linear constraints and largest trust region radius, 
 
 
 
-\subsection{Second Approach: Feasible trust regions}
+\subsection{Second Approach: Feasible Trust Regions}
 
 If we adopt the second approach to maintain a feasible inner trust region with a ``nice" shape, we ensure of a stronger version of \cref{accuracy}.
 Namely, we will know that 
@@ -760,7 +755,7 @@ However, the model will likely be more accurate over this region.
 %If bounds can be shown relating the model error of the inner trust region to the outer trust region, then we will satisfy \cref{accuracy}.
 %In this case, classical methods ensure that $\|\nabla f(x^{(k)}) - \nabla m_f(x^{(k)})\| < \Delta_{inner} \le \Delta_k$.
 
-\subsubsection{Circular trust region}
+\subsubsection{Circular Trust Region}
 The simplest approach to maintaining a feasible trust region is to set the inner trust region radius sufficiently small.
 Within the \emph{ConstructTrustRegion} subroutine, this method sets the trust region radius to the distance to the closest constraint:
 $\outertrk = B_2(\iteratek, \min\{\Delta_k, \min_{i}\frac{|A_i\iteratek - b_i|}{\|A_i\|} \})$.
@@ -782,7 +777,7 @@ Of course, both of these can be done at the same time.
 
 \subsubsection{Ellipsoids}
 
-In order to address this issue we also considered using ellipsoidal trust regions.
+In order to address this issue we considered using ellipsoidal trust regions.
 Whereas the circle does not allow improvement when the current iterate lies along a constraint, an ellipse elongates along this constraint.
 In figure \cref{ellipse_adv}, we have this type of iterate, but by using an ellipse we are still able to search towards the vertex of the feasible region.
 \begin{figure}[h]
@@ -795,9 +790,9 @@ In figure \cref{ellipse_adv}, we have this type of iterate, but by using an elli
 
 More specifically, at iteration $k$, we choose a scaling factor $\pi^k$ and solve for an ellipse center $\mu^k$ and positive definite matrix $Q^k$ to define an ellipse
 $ \ellipsek = \{x \in \mathbb R^n \| \pi^k - \frac 1 2 (x - \mu^{k})^TQ^{k}(x - \mu^{k}) \ge 0 \}$.
-We then map this back to the origin with the affine transformation $T : \mathbb R^n \to R$ $T(x) = \frac {\sqrt{2}}{\pi^k} L^k(x-\mu^k)$ where $L = cholesky(Q)$.
+We then map this back to the origin with the affine transformation $T : \mathbb R^n \to R$, $T(x) = \frac {\sqrt{2}}{\pi^k} L^k(x-\mu^k)$ where $L = cholesky(Q)$.
 This allows us to construct a $\Lambda$-poised set within narrow trust regions.
-The simplest approach is to not change the center of the ellipse, but instead let $\mu^k = x^k$.
+Of course, the simplest approach is to not change the center of the ellipse, but instead let $\mu^k = x^k$.
 
 There are a number of issues to be solved to define this ellipse:
 \begin{itemize}
@@ -815,7 +810,7 @@ This can be done by either expanding the radius of the ellipse, or by including 
 In order to include the original point as a constraint, we add a constraint to the definition of the ellipse of the following form:
 $$ \pi^k - \frac 1 2 (x^k - \mu^{k})^TQ^{k}(x^k - \mu^{k}) \ge 0. $$
 Constraints of this nature make the optimization problem of finding the ellipse much more expensive.
-This is because the optimization problem we construct to find $Q^k$ solves for ${Q^k}^{-1}$, so that adding this constraint is a constraint on the inverse of $Q^k$.
+This is because the optimization problem we construct to find $Q^k$ solves for ${Q^k}^{-1}$, so that adding this constraint is a constraint on the inverse of our decision variable ${Q^{k}}^{-1}$.
 
 
 The alternative is to scale $Q$ by a constant.
@@ -830,17 +825,18 @@ However, this means that we do not ensure $E_k \subset F_k$ so that the trust re
 The are several concerns to be considered while defining the ellipse.
 The major concern is that we can accidentally define $\ellipsek$ in such a way that it limits travel along a decent direction.
 %We also want consecutive ellipse to share volume, in order to avoid evaluating as many points as possible.
-(So far, we have been re-evaluating the set of trial points each iteration.)
+%(So far, we have been re-evaluating the set of trial points each iteration.)
 
 
 Also, unless we include points outside the ellipse, we cannot find a second order solution because the ellipse can only be tangent to the constraint.
 In figure \cref{fbns}, the red line represents a path in the feasible region that is always decreasing.
-However, if the trust regions decrease without intersecting this path, the algorithm will not be aware of this descent direction.
+However, if the trust regions decrease without intersecting this path, the algorithm will not be aware of this descent path.
 However, scaling the trust region to the outer green radius may allow the algorithm to ensure global convergence to second order critical points.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=200px]{images/second_order_critical_point.png}
+    \caption{Potential issue with a second order critical point}
     \label{fbns}
 \end{figure}
 
@@ -849,7 +845,7 @@ However, scaling the trust region to the outer green radius may allow the algori
 Finally, we have the problem of computing the ellipse once given a suitable definition.
 In order to provide the most search space available within the trust region subproblem, we maximize the volume of the ellipse.
 
-\subsubsection{Finding the maximal $ \ellipsek $ given $\mu^k$}
+\subsubsection{Finding the Maximal $ \ellipsek $ Given $\mu^k$}
 
 \label{ellipse_optimization}
 
@@ -885,7 +881,7 @@ E = \{ d \; | \; f(d) \le 1 \}.
 
 Because $Q$ is positive definite, $f$ has a unique minimum on each hyper-plane $A_i d = b_i$.
 Let this minimum be $d^{(i)} = \argmin_{d\| A_id =\bar{b}_i} f(d)$ for $i=1,\ldots,m$.
-By the first order optimality conditions,
+By the first order optimality conditions, there exists a $\lambda \in \mathbb R^m$ such that
 \[
 \nabla f(d^{(i)}) = Q d^{(i)} = \lambda_i A_i \quad \forall 1\le i\le m
 \]
@@ -961,7 +957,7 @@ $$\innertrk = \{x \in \mathbb | 1 - \frac 1 {2s^k} (x - \mu^{k})^T Q (x - \mu^{k
 $$\trialk = \max \{1, \frac 1 {2} (\iteratek - \mu^{k})^T Q^k (\iteratek - \mu^{k})^T \}$$
 
 
-\subsection{Searches for the center}
+\subsection{Searches for the Center}
 
 We may wish to shift $\mu^k$, allowing for more general ellipses.
 In this case, our \emph{ConstructTrustRegion} subroutine searches over multiple centers of the ellipse, however it may not need to construct the model functions for each until it has found a desirable ellipsoid.
@@ -986,7 +982,7 @@ Given a huristic $H : \innertrk \to \Theta$, where $\Theta$ is a set of comparab
 
 In most cases, we have simply used the heurstic $H(E_k) \to \text{Vol}(E_k)$.
 
-\subsubsection{Search everything}
+\subsubsection{Search Everything}
 
 One approach is to search all possible centers within the $ \outerfritr $:
 $ \feasiblek \cap \outertrk$.
@@ -995,7 +991,7 @@ $$\mu^k = \sup_{\mu \in \feasiblek \cap \outertrk} V(\mu)$$
 The search path within the \emph{ConstructTrustRegion} is allowed to go anywhere within $ \feasiblek \cap \outertrk$.
 This has the advantage that it captures much of the feasible region.
 However, one problem with this search is that it can force the trust region away from the desired direction.
-Notice that in figure \cref{ellipse_runs_away}, although the ellipse found has larger volume than before being shifted, this volume contains points further from corner containing the minimizer.
+Notice that in \cref{ellipse_runs_away}, although the ellipse found has larger volume than before being shifted, this ellipse contains points further from corner containing the minimizer.
 
 \begin{figure}[h]
     \centering
@@ -1009,7 +1005,7 @@ Notice that in figure \cref{ellipse_runs_away}, although the ellipse found has l
 One attempt to fix this problem is by limiting the search direction for the center of the ellipse.
 
 
-\subsubsection{Line searches}
+\subsubsection{Line Searches}
 Although $\modelk$'s minimizer over $\outertrk$  can appear anywhere, there are some reasons for expecting it to be at a ``vertex."
 If it lies on the interior, there is little need for using constrained approaches once near the solution.
 
@@ -1017,7 +1013,7 @@ The ellipse with maximum volume, however, tends to lead $\innertrk$ away from ve
 One way of trying to ensure a feasible direction towards a vertex, while still allowing a larger volume ellipse, is by limiting the search for the new center to lie on line segments starting at the current iterate $\iteratek$.
 
 For example, our first attempt was to simply search a line directed away from the closest constraint.
-This has obvious problems as shown in figure \cref{first_line_search}, as we should avoid letting the new center get closer to another constraint:
+This has obvious problems as shown in \cref{first_line_search}, as we should avoid letting the new center get closer to another constraint:
 
 \begin{figure}[h]
     \centering
@@ -1031,7 +1027,7 @@ This has obvious problems as shown in figure \cref{first_line_search}, as we sho
 To fix this, we break the search path within the \emph{ConstructTrustRegion} subroutine into segments based on the nearest constraint.
 We find the center that maximizes the volume of the ellipse after restricting it to lie on a ray perpendicular to the nearest constraint.
 Nearest, here, means the constraint with the smallest distance from the iterate to the projection of that iterate onto the constraint:
-if we let $\nabla \modelconstrainti(\iteratek) = A_i$ be the $i$ row of $A$, then we define the distance from a search point $s$ so the $i$th constraint to be
+if we let $\nabla \modelconstrainti(\iteratek) = A_i$ be the $i$th row of $A$, then we define the distance from a search point $s$ so the $i$th constraint to be
 $d(A_i, x) = \frac {|A_i x - b|}{\|A_i\|}$.
 Let $i$ be such that $d(A_i, \iteratek) \le d(A_j, \iteratek) \; \forall 1\le j\le m$, then we set the first ray direction to be $r_1=-A_j$.
 We search along the ray $\{x +tr_1|t\ge 0\}$ from the current iterate until we reach a point $x'$ that also has the same distance to another constraint as the nearest to the iterate:
@@ -1040,7 +1036,7 @@ This completes the first segment.
 It can also happen that at the starting point there are two (or even more) constraints that are both closer than all others, say there are some $1\le i,j\le m$ with $d(A_i, \iteratek) = d(A_j, \iteratek) \le d(A_k, \iteratek)  \forall 1\le k \le m$.
 In this case we simply follow a ray whose points are equidistant from both of these constraints: $\{x - t\frac 1 2 (A_i + A_j)| t \ge 0\}$.
 At the end of each segment, we construct a ray that is equidistant to all constraints previously encountered.
-We could then, in general, continue to follow line segments by always traveling away from the nearest constraints until we reach a point equidistant to $n+1$ constraints.
+We could then, in general, continue to follow line segments by always traveling away from the nearest constraints until we reach a point equidistant to $n+1$ constraints or the set of equidistant constraints contains parallel constraints.
 However, after we include enough constraints, we will eventually once again head away from a vertex.
 
 This means that we can define a class of searches that each limit the number of line segments to search.
@@ -1056,3 +1052,18 @@ Notice that with two line segments, the algorithm can already choose new centers
     \caption{Ellipse runs away from the optimizer}
     \label{line_can_run}
 \end{figure}
+
+
+
+
+\subsection{}
+We still experienced a problem with iterates coming too close to the boundary of the feasible region.
+Another way of dealing with this is to shift the constraints closer to the current iterate.
+Namely, we introduce a parameter $\upsilon$ to determine how far to scale the constraints.
+Then, within the trust region subproblem, we add constraints of $Ax \le b\upsilon + (1-\upsilon) A\iteratek$.
+Before doing this, the rows of $A$ are normalized.
+This produces the buffered segment searches withing the results.
+
+
+
+
