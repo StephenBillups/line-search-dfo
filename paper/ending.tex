@@ -2,14 +2,6 @@
 
 \section{Results}
 
-\subsection{Practical Modification}
-We still experienced a problem with iterates coming too close to the boundary of the feasible region.
-Another way of dealing with this is to shift the constraints closer to the current iterate.
-Namely, we introduce a parameter $\upsilon$ to determine how far to scale the constraints.
-Then, within the trust region subproblem, we add constraints of $Ax \le b\upsilon + (1-\upsilon) A\iteratek$.
-Before doing this, the rows of $A$ are normalized.
-This produces the buffered segment searches withing the results.
-
 
 \subsection{Sample Problem}
 The first test was on a problem with simple constraints and a pathological objective.
@@ -237,6 +229,16 @@ The line segment search with 5 segments does not solve many problems, this is be
 Notice that the polyhedral search does very well.
 We conjecture that this may not hold with modelled, nonlinear constraints.
 
+
+
+
+\subsection{Summary}
+We still experienced a problem with iterates coming too close to the boundary of the feasible region.
+Another way of dealing with this is to shift the constraints closer to the current iterate.
+Namely, we introduce a parameter $\upsilon$ to determine how far to scale the constraints.
+Then, within the trust region subproblem, we add constraints of $Ax \le b\upsilon + (1-\upsilon) A\iteratek$.
+Before doing this, the rows of $A$ are normalized.
+This produces the buffered segment searches withing the results.
 
 %Add another column for $a$.
 %Want to average over multiple starting points.
