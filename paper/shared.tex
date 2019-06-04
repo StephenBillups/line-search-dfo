@@ -18,8 +18,12 @@ where $\domain$ is a subset of $\real^n$, and $f$ and $c_i, i \in \mathcal{I} \c
 % We consider two variations of this problem.
 % In the first variation, we assume that the constraints are fully quantifiable.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As in \cite{DUMMY:typesofconstraints}, partially quantifiable means that all of the functions can be evaluated at any point in $X$ and that the values returned for the constraint functions provide meaningful information about how close the point is to a constraint boundary.
-We assume that the black-box functions return meaningful numerical values \emph{only} when evaluated at feasible points. In this case, the constraints are called {\em partially quantifiable}.   
+
+We are specifically interested in applications were some of the black box functions cannot be evaluated outside the feasible region.
+As in \cite{DUMMY:typesofconstraints}, quantifiable means that the functions can be evaluated at any point in $X$ and that the values returned for the constraint functions provide meaningful information about how close the point is to a constraint boundary.
+We assume that the black-box functions return meaningful numerical values \emph{only} when evaluated at feasible points.
+In this case, the constraints are called {\em partially quantifiable}.   
+As such, we impose the requirement that all sample  points must be feasible.
 
 We are interested in developing {\em model-based} trust-region algorithms for solving these problems.
 Model-based methods work by constructing model functions to approximate the black box functions at each iteration.
@@ -37,8 +41,6 @@ where $\iteratek$ is the current iterate, $\modelk$ is the model function approx
 The key differences between this problem and the original is that all functions are replaced with their model functions, and a trust region constraint has been added.
 Conceptually, the model functions are ``trusted'' only within a distance $\Delta_k$ of the current iterate $\iteratek$; so the trust-region subproblem restricts the length of step $s$ to be no larger than $\Delta_k$.
 To ensure that the model functions are good approximations of the true functions over the trust region, the sample points are typically chosen to lie within, or at least near, the trust-region.
-We are specifically interested in applications were some of the black box functions cannot be evaluated outside the feasible region.
-As such, we impose the requirement that all sample  points must be feasible.
 
 
 An important consideration in fitting the model functions is the ``geometry'' of the sample set.
@@ -214,7 +216,7 @@ Another recent review can be found in \cite{DUMMY:review2}.
 % READ THIS
 
 
-\subsection{Model Based Algorithms}
+\subsection{Sample Set Geometry}
 
 \subsubsection{Sampling Issues}
 
@@ -222,7 +224,7 @@ Derivative free trust region methods construct model functions from a family of 
 $\{\phi_0, \phi_2, \ldots, \phi_p\}$.
 Each member of this family has the from $\modelk(x) = \sum_{i=0}^p\alpha_i\phi_i(x)$ for some scalar coefficients $\alpha_i, i \in \{0, \ldots, p\}$.
 In our method, we use interpolation to choose the coefficients so that $\modelk$ agrees with $f$ on a set of sample points $Y = \{y^0, y^1, \ldots, y^p\}$.
-When this is done, care must be taken to avoid issues with two important aspects: their \emph{geometry} and \emph{proximity}.
+When this is done, care must be taken to avoid issues with their \emph{geometry}.
 
 \paragraph{Interpolation}
 \label{interpolation}
@@ -283,7 +285,7 @@ However, even when $V$ is nonsingular but ``close" to singular, as measured by i
 Algorithms must be careful to avoid choices of sample points $Y$ that cause the condition number of this matrix to be poor.
 
 In the case of polynomial model functions, a careful analysis of model accuracy can be performed using \emph{Lagrange polynomials}.
-The Lagrange polynomials $l_0, l_1, \ldots, l_p$ for the sample set $Y$ are a set of lowest degree polynomials such that
+The Lagrange polynomials $l_0, l_1, \ldots, l_p$ for the sample set $Y$ are a set of lowest maximum degree polynomials such that
 \[
 l_i(y^j) = \delta_{i,j}
 \]
@@ -365,7 +367,9 @@ In practice, we first shift the sample set $Y$ by subtracting the current iterat
 \bar{Y} = [0, \frac{y^1 - y^0}{\Delta}, \ldots, \frac{y^p - y^0}{\Delta}]
 \end{align}
 
-If the sample set does not contain all $p+1$ points during initialization, we fill in $y^0$ for all remaining points.
+At times, the algorithm will not have all $p+1$ points.
+This can be because it is only given one point during initialization, or because points not within the trust region are removed.
+Because the model improving algorithm requires all $p+1$ points, we initialize $y^i = y^0$ for any $0 < i \le p$ corresponding to a missing point.
 We choose a threshold $0 < \ximin < 1$, and follow \cref{model_improving_algorithm}:
 
 \begin{algorithm}[H]
@@ -392,20 +396,47 @@ We choose a threshold $0 < \ximin < 1$, and follow \cref{model_improving_algorit
             Go to step 1 unless $i = p$
     \end{itemize}
 \end{algorithm}
+% 
+% \paragraph{Proximity}
+% 
+% Proximity refers to the trust region radius.
+% The trust region must go to zero if we are to be sure we have reached a critical point.
+% In general, the smaller the trust region, the closer to linear or quadratic the original function will look.
+% This is because the model's error term is proportional to the trust region radius.
+% 
+% In classical trust region algorithms, there is no need for the trust region radius to go to zero.
+% Therefore, extra care must be taken to ensure this while modifying such algorithms.
 
-\paragraph{Proximity}
 
-Proximity refers to the trust region radius.
-The trust region must go to zero if we are to be sure we have reached a critical point.
-In general, the smaller the trust region, the closer to linear or quadratic the original function will look.
-This is because the model's error term is proportional to the trust region radius.
+% \begin{algorithmic}
+% \If{$\rho < \gamma_1$}
+%     \State $\iteratekpone \gets \iteratek$ (reject)
+%     \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
+% \ElsIf{$\gamma_1 \le \rho \le \gamma_2$}
+%     \State $\iteratekpone\gets \gets \iteratek + \trialk$ (accept)
+%     \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
+% \ElsIf {$\rho > \gamma_2$}
+%     \State $\iteratekpone \gets \iteratek + \trialk$ (accept)
+%     \If
+%         \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
+%     \Else
+%         \State $\Delta_{k+1} \gets \omega_{\text{inc}} \Delta_k$
+%     \EndIf
+% \EndIf
+% \end{algorithmic}
 
-In classical trust region algorithms, there is no need for the trust region radius to go to zero.
-Therefore, extra care must be taken to ensure this while modifying such algorithms.
+
+\subsection{Algorithm Components}
+
+
+
+
+We will discuss several building blocks of the algorithm before going into the algorithm's detail.
 
 \subsubsection{Assessing Model Accuracy and Radius Management}
+
 Each iteration that evaluates a trial point must also test the accuracy of the model functions.
-To perform this test, we calculate a quantity
+To test the accuracy, we calculate a quantity
 \begin{equation}
 \label{rho}
 \rho_k = \frac{f(\iteratek) - f(\iteratek+\trialk)}{\modelk(\iteratek) - \modelk(\iteratek+\trialk)}
@@ -434,32 +465,6 @@ The update policy frequently follows Step 4 within algorithm \cref{unconstrained
 \end{algorithm}
 
 
-
-
-% \begin{algorithmic}
-% \If{$\rho < \gamma_1$}
-%     \State $\iteratekpone \gets \iteratek$ (reject)
-%     \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
-% \ElsIf{$\gamma_1 \le \rho \le \gamma_2$}
-%     \State $\iteratekpone\gets \gets \iteratek + \trialk$ (accept)
-%     \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
-% \ElsIf {$\rho > \gamma_2$}
-%     \State $\iteratekpone \gets \iteratek + \trialk$ (accept)
-%     \If
-%         \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
-%     \Else
-%         \State $\Delta_{k+1} \gets \omega_{\text{inc}} \Delta_k$
-%     \EndIf
-% \EndIf
-% \end{algorithmic}
-
-
-\subsection{Algorithm Components}
-
-
-
-
-We will discuss several building blocks of the algorithm before going into the algorithm's detail.
 
 
 \subsubsection{Criticality Measure}
