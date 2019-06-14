@@ -523,8 +523,8 @@ $\innertrk \subset \outertrk \cap \feasiblek$ and $\iteratek \in \innertrk$.
 
 We consider two general strategies for constructing $\innertrk$.
 \begin{itemize}
-\item[1] Take $\label{redpill} \innertrk = \outertrk \cap \feasiblek$ and ensure model accuracy over a polyhedral domain.
-\item[2] Force $\label{bluepill} \innertrk \subseteq \outertrk \cap \feasiblek$ to have an ellipsoidal shape.
+\item[1.] Take $\label{redpill} \innertrk = \outertrk \cap \feasiblek$ and ensure model accuracy over a polyhedral domain.
+\item[2.] Force $\label{bluepill} \innertrk \subseteq \outertrk \cap \feasiblek$ to have an ellipsoidal shape.
 \end{itemize}
 
 The advantage of the second approach is that we can reuse classical methods for ensuring good geometry.
@@ -532,15 +532,17 @@ We can choose $\innertrk$ to be ellipsoidal and use efficient algorithms within 
 However, we must be careful to choose $\innertrk$ to allow sufficient reduction when we solve the trust region subproblem using the inner trust region.
 
 
-We have two choices for this trust region subproblem:
+When we use the second approach, have two choices for this trust region subproblem:
+\begin{center}
+\begin{itemize}
 \label{which_trust_region}
-\begin{align}
-\trialk = \min_{\trialk \in \innertrk \subset \feasiblek} \modelk(\iteratek + \trialk) \label{search_a_little} \\
-\trialk = \min_{\trialk \in \outertrk \cap \feasiblek} \modelk(\iteratek + \trialk) \label{search_a_lot}
-\end{align}
+\item[2a] $\trialk = \min_{\trialk \in \innertrk \subset \feasiblek} \modelk(\iteratek + \trialk) \label{search_a_little}$
+\item[2b] $\trialk = \min_{\trialk \in \outertrk \cap \feasiblek} \modelk(\iteratek + \trialk) \label{search_a_lot}$
+\end{itemize}
+\end{center}
  
-
-To complete the first approach $\innertrk = \outertrk \cap \feasiblek$, we need some redefinition of poisedness for polyhedral shapes.
+Namely, in 2B with an ellipsoidal inner trust region, we still have to option to select our trial point from the entire $\trialk \in \outertrk \cap \feasiblek$.
+To complete 2A $\innertrk = \outertrk \cap \feasiblek$, we need some redefinition of poisedness for polyhedral shapes.
 However, since the trust region is larger, it is easier to ensure sufficient reduction.
 This strategy also has the drawback that it will force sample points close to the boundary of the feasible region.
 If we only model the boundary, this may mean more infeasible evaluation attempts.
