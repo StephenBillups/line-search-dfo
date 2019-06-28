@@ -24,8 +24,9 @@
 
 We propose a model-based trust-region algorithm for constrained optimization problems with linear constraints in which derivatives of the objective function are not available and the objective function values outside the feasible region are not available.
 In each iteration, the objective function is approximated by an interpolation model, which is then minimized over a trust region.
-To ensure feasibility of all iterates, an ellipsoidal trust region is constructed at each iterate that is contained within the feasible region.
-We explore several choices of trust region and compare them with different functions, and types of constraints.
+To ensure feasibility of all sample points and iterates, we consider two trust region strategies in which the trust regions are contained in the feasible region.
+Computational results are presented on a suite of test problems.
+% We explore several choices of trust region and compare them with different functions, and types of constraints.
 % We work within the pyomo framework and test using ipopt optimization routines. We provide global convergence analysis thoughts, some numerical results, and suggest how we will extend this to include more general constraints.
 
 \end{abstract}
@@ -40,9 +41,9 @@ We explore several choices of trust region and compare them with different funct
 
 \newpage
 
-\appendix
-
 \input{ending}
+
+\appendix
 
 \input{table_of_notation}
 

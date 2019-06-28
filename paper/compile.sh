@@ -5,7 +5,7 @@
 # 
 
 # for FILENAME in short_paper gc full_paper 
-for FILENAME in full_paper
+for FILENAME in short_paper
 do
     rm -f $FILENAME.aux $FILENAME.log $FILENAME.blg $FILENAME.toc
     pdflatex $FILENAME.tex
