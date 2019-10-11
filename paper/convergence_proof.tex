@@ -1,0 +1,341 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsthm}
+\usepackage[margin=0.5in]{geometry}
+
+\newtheorem{theorem}{Theorem}
+
+\title{Proof}
+\author{Trever Hallock}
+
+\newcommand{\grad}{\nabla f}
+\newcommand{\xk}{{x}^{(k)}}
+\newcommand{\ints}{\mathbb N}
+\newcommand{\dk}{\Delta_k}
+\newcommand{\rk}{\rho_k}
+\newcommand{\pik}{\chi_k}
+\newcommand{\sk}{{s^{(k)}}}
+\newcommand{\mk}{{m_f^{k}}}
+\newcommand{\xkpo}{{{x}^{(k+1)}}}
+\newcommand{\dkpo}{\Delta_{k+1}}
+\newcommand{\gk}{{g^{(k)}}}
+\newcommand{\tone}{\omega_{\text{dec}}}
+\newcommand{\ttwo}{\omega_{\text{inc}}}
+\newcommand{\oalpha}{\tau_{\Delta}}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Hypothesis}
+\subsection{H1}
+The function $f$ is differentiable and its gradient $\grad$ is Lipschitz continuous with constant $L > 0$ in $ \Omega $.
+\subsection{H2}
+The function $f$ is bounded below in $ \Omega $.
+\subsection{H3}
+The matrices $H_k$ are uniformly bounded, that is, there exists a constant $ \beta \ge 1 $ such that $\|H_k\| \le \beta - 1$ for all $k \ge 0$.
+\subsection{H4}
+There exists a constant $c_2 > 0$ such that $ \| \gk - \grad(\xk) \| \le c_2 \dk $ for $k \in \ints $.
+
+\section{Requirements}
+
+\begin{align*}
+\mk(\xk) - \mk(\xk + \sk) \ge c_1 \pik \min\{\frac{\pik}{1 + \|H_k\|}, \dk, 1\}
+\end{align*}
+
+\section{Constants}
+
+\begin{align*}
+x^{(0)} \in \Omega \\
+\oalpha > 0 \\
+\Delta_0 > 0 \\
+0 < \tone < 1 \le \ttwo \\
+\eta_1 \in (0, 1) \\
+0 \le \eta < \eta_1 \le \eta_2
+\end{align*}
+
+\section{Definitions}
+
+\begin{align*}
+\rk = \frac{f(\xk) - f(\xk + \sk)}{\mk(\xk) - \mk(\xk + \sk)} \\
+\mk(\xk + \sk) = f(\xk) + (\gk)^T \sk + \frac 1 2 \sk^T H_k \sk \\
+\pik = \|P_{\Omega}(\xk - \gk) - \xk \| \\
+S = \{k \in \ints | \rk > \eta \} \\
+\bar{S} = \{k \in \ints | \rk \ge \eta_1 \} \\
+c = \frac{L + c_2 + \frac {\beta} 2}{c_1} \\
+c_0 = L + c_2 + \frac {\beta} 2 \\
+\mathcal K = \big \{ k \in \ints | \dk \le \min \{ \frac {\pik}{\beta}, \frac{1-\eta_1}{\pik}c, \oalpha \pik, 1 \} \big \}
+\end{align*}
+
+\section{Copy}
+
+\subsection{Lemma 3.1}
+\begin{theorem}
+Suppose that Hypothesis H1, H2, H4. If $k \in \mathcal K$, then $k \in \bar{S}$.
+\end{theorem}
+ 
+\begin{proof}
+
+By the Mean Value Theorem, there exists a $t_k \in (0, 1)$ such that
+\begin{align*}
+f(\xk + \sk) = f(\xk) + \grad(\xk + t_k\sk)^T\sk
+\end{align*}
+
+By H1, H3, H4,
+\begin{align*}
+|f(\xk) - f(\xk + \sk) - (\mk(\xk) - \mk(\xk + \sk)| \\
+= |-(\grad(\xk + t_k\sk) - \gk)^T\sk + \frac 1 2 (\sk)^T H_k \sk| \\
+\le (\| \grad(\xk + t_k\sk) - \grad(\xk) \| + \| \grad(\xk)-\gk \|) \|\sk\| + \frac 1 2 \|\sk\|^2\|H_k\| \\
+\le (t_k L \|\sk\| + c_2\dk) \|\sk\| + \frac 1 2 \beta \|\sk\|^2
+\end{align*}
+
+Since $\| \sk \| \le \dk$ and $t_k \in (0, 1)$ we have that
+\begin{align}
+|f(\xk) - f(\xk + \sk) - (\mk(\xk) + \mk(\xk + \sk)| \le c_0 \dk^2
+\end{align}
+
+By the definition of $\mathcal K$, for every $k \in \mathcal K$ we have that $\dk \le \oalpha \pik$ and consequently $\pik > 0$.
+By the efficiency condition, this means that $\mk(\xk) - \mk(\xk + \sk) \ne 0$.
+Then,
+\begin{align*}
+|\rk - 1| = \bigg |\frac{f(\xk) - f(\xk + \sk) - (\mk(\xk) - \mk(\xk + \sk)}{\mk(\xk) - \mk(\xk + \sk)} \bigg | \\
+\le \frac {c_0 \dk^2} {c_1 \pik \min\{\frac{\pik}{\beta}, \dk, 1\}} \\
+= \frac {c \dk^2} {\pik \min\{\frac{\pik}{\beta}, \dk, 1\}}
+\end{align*}
+
+We also know that 
+\begin{align*}
+\dk = \min\{\frac {\pik} {\beta}, \dk, 1 \} \\
+\frac {c \dk}{\pik} \le 1 - \eta_1
+\end{align*}
+so that
+\begin{align*}
+|\rk - 1| \le 1 - \eta_1 \\
+\Longrightarrow \rk \ge \eta_1
+\end{align*}
+so that $k \in \bar{S}$.
+
+
+\end{proof}
+
+
+
+\subsection{Lemma 3.2}
+\begin{theorem}
+Suppose Hypothesis H2, H3. Then the sequence $(\dk)$ converges to zero.
+\end{theorem}
+ 
+\begin{proof}
+
+Suppose that $\bar{S}$ is finite. Then there exists $k_0 \in \ints$ such that for all $k \ge  k_0$, $\dkpo \le \tone \dk$.
+Thus, $(\dk)$ converges to zero.
+From now on $\bar{S}$ is infinite.
+For any $k \in \bar{S}$, we know $\dk \le \oalpha \pik$ using $H3$ we have
+\begin{align*}
+f(\xk) -  f(\xkpo) \ge \eta_1 \big (\mk(\xk) - \mk(\xk + \sk)\big ) \ge \eta_1 c_1 \pik \min\{\frac{\pik}{\beta}, \dk, 1\}\\
+f(\xk) - f(\xkpo) \ge \eta_1c_1\frac{\dk}{\oalpha}\min\{\frac{\dk}{\oalpha \beta}, \dk, 1\}
+\end{align*}
+Because $f(\xk)$ is nonincreasing, the left hand side goes to zero.
+Thus,
+\begin{align}
+\lim_{k \in \bar{S}} \dk = 0
+\end{align}
+
+
+Consider the set
+$\mathcal U = \{ k \in \ints | k \not \in \bar S \}$.
+If $\mathcal U$ is finite, then $\lim_{k\to\infty}\dk = 0$.
+Otherwise, consider $k \in \mathcal U$ and define $\l_k$ to be the last index in $\bar S$ before $k$.
+Then $l_k$ is well-defined for all large $k$  and $\dk \le \ttwo \Delta_{l_k}$ which implies that
+\begin{align}
+\lim_{k \in \mathcal U } \dk \le \ttwo \lim_{k \in \mathcal U} \Delta_{l_k} = \ttwo \lim_{l_k \in \bar{S}} \Delta_{l_k}
+\end{align}
+
+so that $\lim_{k \in \mathcal U} \dk = 0$.
+
+\end{proof}
+
+
+
+
+\subsection{Lemma 3.3}
+\begin{theorem}
+Suppose that Hypothesis H1, H4. Then $\liminf_{k\to\infty} \pik = 0$.
+\end{theorem}
+ 
+\begin{proof}
+Suppose for a contradiction that there exists a constants $\epsilon > 0$ and an integer $K > 0$ such that for $\pik \ge \epsilon$ for each $k \ge K$.
+Take $ \tilde \Delta = \min \{\frac{\epsilon}{\beta}, \frac{(1 - \eta_1)c}{\epsilon}, \oalpha \epsilon, 1\}$.
+Consider $k \ge K$.
+If $\dk \le \tilde \Delta$, then $k \in \mathcal K$.
+Then $k \in \bar S$ and thus $\dkpo \ge \dk$.
+Therefore, the trust region radius can only decrease if $\Delta > \tilde \Delta$, and in this case $\dkpo = \tone\dk > \tone \tilde \Delta$.
+Therefore, one can see that for all $k \ge K$
+\begin{align}
+\dk \ge \min\{\tone \tilde \Delta, \dk \}
+\end{align}
+which is a contradiction.
+\end{proof}
+
+
+
+\subsection{Lemma 3.4}
+\begin{theorem}
+Suppose that H1 to H4 and $\eta > 0$. Then $\lim_{k\to\infty}\pik=0$.
+\end{theorem}
+
+\begin{proof}
+Suppose for a contradiction that for some $\epsilon > 0$ the set $\ints ' = \{k \in \ints | \pik \ge \epsilon \}$
+is finite.
+
+Because $\lim_{k\to\infty}\Delta_k\to 0$, there exists a $k_0 \in \ints$ such that for all $k \ge k_0$,
+
+\begin{align*}
+\dk \le \min\{\frac{\epsilon}{\beta}, \frac{(1-\eta_1)\epsilon}{c}, \oalpha\pik, 1\}.
+\end{align*}
+
+Then if $k \in \ints '$ with $k \ge k_0$:
+
+\begin{align*}
+\dk \le \min\{\frac{\pik}{\beta}, \frac{(1-\eta_1)\pik}{c}, \oalpha\pik, 1\}
+\end{align*}
+
+and therefore $k \in \bar S \subset S$.
+
+Given $k \in \ints'$ with $k\ge k_0$, consider $l_k$ the first index such that $l_k > k$ and $\chi_{l_k} \le \frac{\epsilon} 2$.
+The existence of $l_k$ is ensured by lemma 3.3.
+This means that $\pik - \chi_{l_k} \ge \frac {\epsilon} 2 $.
+Using the definition of $\pik$, the triangle inequality and the contraction property of projections, we have that
+
+\begin{align*}
+\frac{\epsilon}{2} \le \|P_{\Omega}(\xk - \gk) - \xk\| - \|P_{\Omega}(x^{(l_k)} - g^{(l_k)}) - x^{(l_k)}\| \\
+\le \|P_{\Omega}(\xk - \gk) - \xk - P_{\Omega}(x^{(l_k)} - g^{(l_k)}) + x^{(l_k)}\| \\
+\le 2\|\xk - x^{(l_k)}\| + \|\gk - g^{(l_k)}\| \\
+=   2\|\xk - x^{(l_k)}\| + \|\gk - \grad(\xk) + \grad(\xk) - \grad(x^{(l_k)}) + \grad(x^{(l_k)}) - g^{(l_k)}\| \\
+\le 2\|\xk - x^{(l_k)}\| + \|\gk - \grad(\xk)\| + \|\grad(\xk) - \grad(x^{(l_k)})\| + \|\grad(x^{(l_k)}) - g^{(l_k)}\|.
+\end{align*}
+
+So that
+\begin{align}
+\frac{\epsilon} 2 \le (2 + L) \|\xk - x^{(l_k)}\| + c_2(\dk + \Delta_{l_k}).
+\end{align}
+
+Consider $C_k = \{i \in S | k \le i < l_k\}$.
+Note that because $k \in S$, so $C_k \ne \varnothing $.
+For each $i \in C_k$, using the fact that $i \in S$, and H3, we conclude that 
+
+\begin{align}
+f(x^{(i)}) - f(x^{(i+1)}) \ge \eta\big ( \mk(x^{(i)}) - \mk(x^{(i)} + s^{(i)}) \big ) \ge \eta c_1 \chi_i \min\{\frac{\chi_{i}}{\beta}, \Delta_i, 1\} 
+\end{align}
+
+By the definition of $l_k$, we have that $\chi_i > \frac{\epsilon}{2}$ for all $i \in C_k$.
+As $i \ge k$, $\Delta_i \le \frac{\epsilon}{\beta}$ and $\Delta_i \le 1$.
+Therefore,
+\begin{align}
+\frac{\Delta_i}{2} \le \frac{\epsilon}{2\beta} \le \frac{\pi_i}{\beta}.
+\end{align}
+
+It follows that
+\begin{align}
+f(x^{(i)}) - f(x^{(i+1)}) > \frac{\eta c_1 \epsilon \Delta_i}{4}
+\end{align}
+
+and hence
+\begin{align}
+\Delta_i < \frac{4}{\eta c_1 \epsilon} \big ( f(x^{(i)}) - f(x^{(i+1)})\big ).
+\end{align}
+
+Meanwhile,
+\begin{align}
+\|x^{(i)} - x^{(l_k)}\| \le \sum_{i \in C_k}\|x^{(i)} - x^{(i+1)}\| \le \sum_{i \in C_k} \Delta_i
+\end{align}
+
+so that
+
+\begin{align}
+\|x^{(i)} - x^{(l_k)}\| < \frac{4}{\eta c_1 \epsilon} \big ( f(x^{(i)}) - f(x^{(i+1)})\big ).
+\end{align}
+
+We also know that $(f(\xk))$ is bounded below, and since it is nonincreasing, $f(\xk)  - f(x^{(l_k)}) \to 0$.
+Therefore $(\|\xk - x^{(l_k)}\|)_{k \in \ints '}$ converges to zero.
+
+\end{proof}
+
+
+\begin{theorem}
+Suppose that H1 to H4 hold.
+
+If $\eta = 0$, then
+\begin{align}
+\liminf_{k\to\infty} \|P_{\Omega}(\xk - \grad(\xk)) - \xk \| = 0.
+\end{align}
+
+If $\eta > 0$, then
+\begin{align}
+\lim_{k\to\infty} \|P_{\Omega}(\xk - \grad(\xk)) - \xk \| = 0.
+\end{align}
+
+\end{theorem}
+
+\begin{proof}
+By the triangle inequality, the contraction property of projections and H4, we have that
+
+\begin{align*}
+\|P_{\Omega}(\xk - \grad(\xk)) - \xk \| = \|P_{\Omega}(\xk - \grad(\xk)) - P_{\Omega}(\xk - \gk) + P_{\Omega}(\xk - \gk) - \xk\| \\
+\le \|P_{\Omega}(\xk - \grad(\xk)) - P_{\Omega}(\xk - \gk)\| + \|P_{\Omega}(\xk - \gk) - \xk\| \\
+\le \|\grad(\xk) - \gk\| + \|P_{\Omega}(\xk - \gk) - \xk\| \\
+\le c_2 \Delta_k + \pik
+\end{align*}
+
+\end{proof}
+
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
