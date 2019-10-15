@@ -150,7 +150,7 @@ This derivative-free optimization algorithm differs from the classical trust reg
     \item The trust region radius $\Delta_k$ must go to zero as $k\to\infty$.
 \end{enumerate}
 
-These are required to ensure that the gradient of the model function is equal to the gradient of $f$ in the limit.
+This is required to ensure that the gradient of the model function is equal to the gradient of $f$ in the limit.
 Our goal is to generalize this framework to handle constraints, where we must ensure no constraint violation occurs while also ensuring the accuracy of the models of the constraints.
 % Two challenges while adopting this framework to derivative free optimization are
 % 
@@ -616,11 +616,6 @@ The different versions are described in the remainder of this section.
 
 % HOW ABOUT JUST MAKE $\eta > 0$?
 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-Need to fix up the constants here.
-Do not define them twice.
-Introduce the new eta.
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 \begin{algorithm}[H]
     \caption{Always-feasible Constrained Derivative Free Algorithm}
@@ -1180,7 +1175,7 @@ The matrices $\hk$ are uniformly bounded, that is, there exists a constant $ \be
 The construction of each variant of our algorithm ensures that the following two criteria are also met.
 \paragraph{Accuracy}
 The accuracy condition \ref{accuracy} is satisfied:
-There exists a constant $\kappa_{g} > 0$ such that $ \| \gk - \grad(\iteratek) \| \le \kappa_{g} \dk $ for $k \in \ints $.
+there exists a constant $\kappa_{g} > 0$ such that $ \| \gk - \grad(\iteratek) \| \le \kappa_{g} \dk $ for $k \in \ints $.
 
 We have shown that this is satisfied for ellipsoidal trust regions in \ref{ellipsoidal_lambda}.
 
