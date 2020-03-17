@@ -1,0 +1,845 @@
+
+
+\section{Algorithms}
+
+\subsection{Assumptions}
+% 
+% We assume the following properties.
+% 
+% \begin{itemize}
+% \item The function $f$ is differentiable and its gradient $\nabla f$ is Lipschitz continuous with constant $L > 0$ for all $x \in \domain$.
+% \begin{equation}
+% \label{A1}
+% |f(x_1) - f(x_2)| \le L \|x_1 - x_2\| \quad \forall x_1, x_2 \in \domain
+% \end{equation}
+% \item \label{A2} The function $f$ is bounded below in $\domain$.
+% \begin{equation}
+% \label{A2}
+% f(x) \ge f_{\text{min}} \quad \forall x \in \domain
+% \end{equation}
+% 
+% \item The Hessians of each model function are uniformly bounded by a constant $\beta \ge 1$ :
+% \begin{equation}
+% \label{A3}
+% \|\nabla^2 \modelk(\iteratek)\| \le \beta - 1 \quad \forall k \ge 0
+% \end{equation}
+% 
+% \end{itemize}
+
+
+As a first step toward solving a general derivative free problem with partially-quantifiable constraints,
+we solve a simpler problem with $\domain = R^n$ and $c(x) = Ax-b$ for some $m\times n$ matrix $A$ and a vector $b\in \mathbb R^m$:
+
+\[ \begin{array}{ccl} \min_{x \in \mathbb R^n} & f(x) \\
+& Ax \le b & 
+\end{array}
+\]
+This means that we can let the feasible region be denoted by $\feasible = \{x \in \mathbb R^n | \quad  Ax \le b \}$.
+We assume that $A$ has full row rank, and that  $dim(A) = n$.
+
+\subsection{Algorithm Template}
+
+%Although some details depend on the particular choice of $\innertrk$, 
+We follow an algorithm template described in \cite{doi:10.1080/10556788.2015.1026968}, where variations of the algorithm have different choices of $ \sampletrk $ implemented in a \emph{ConstructTrustRegion} subroutine.
+The different versions are described in the remainder of this section.
+
+% HOW ABOUT JUST MAKE $\eta > 0$?
+
+
+\begin{algorithm}[H]
+    \caption{Always-feasible Constrained Derivative Free Algorithm}
+    \label{constrained_dfo}
+    \begin{itemize}
+        \item[\textbf{Step 0}] \textbf{(Initialization)} \\
+            Initialize tolerance constants 
+            $\tau_{\xi} \ge 0$,
+            $\tau_{\Delta} \ge 0$,
+            starting point $x^{(0)} \in \domain$,
+            initial radius $\Delta_0 > 0$,
+            iteration counter $k=0$,
+            $0 < \omegadec < 1 \le \omegainc$,
+            $0 < \gammasm < \gammabi \le 1$,
+            $\alpha > 0$,
+            $0 < \Delta_0 < \Delta_{\text{max}} < \frac 1 2 diam(\domain)$,
+            $k \gets 1$,
+            $0 < \omegadec < 1 \le \omegainc$,
+            $0 < \gammasm < \gammabi < 1$.
+            
+        \item[\textbf{Step 1}] \textbf{(Construct the model)} \\
+            $ \sampletrk \gets $ \Call{ConstructTrustRegion}{$\Delta_k, x^{(k)}$}.
+            Ensure that the sample points are poised with respect to $ \sampletrk $ for \cref{accuracy} by calling \cref{model_improving_algorithm}.
+            Construct $\modelk$ as described in \cref{reg} to construct $\modelk(x)$.
+        
+        \item[\textbf{Step 2}] \textbf{(Check stopping criteria)} \\
+            Compute $\chi_k$ as in \cref{critical}. \begin{itemize}
+                \item[] If $ \chik < \tau_{\xi} $ and $\dk <\tau_{\Delta}$ then return $\iteratek$ as the solution.
+                \item[] Otherwise, if $\dk > \alpha \chik$ then 
+                $\Delta_{k+1} \gets \omegadec\Delta_{k}$, 
+                $x^{(k+1)} \gets \iteratek$,
+                $k \gets k+1$ and go to Step 1.
+            \end{itemize}
+        
+        \item[\textbf{Step 3}] \textbf{(Solve the trust region subproblem)} \\
+            Compute $\trialk = \min_{s \in \searchtrk} \modelk(\iteratek + \trialk)$.
+            % \item[] This can also be $\trialk = \min_{s \in \outertrk \cap \feasiblek} \modelk(\iteratek + \trialk)$ depending on the choice made in \cref{which_trust_region}.
+            
+        \item[\textbf{Step 4}] \textbf{(Test for improvement)} \\
+            Evaluate $f(\iteratek + \trialk)$ and evaluate $\rho_k$ as in \cref{rho} \begin{itemize}
+                \item[] If $\rho_k < \gammasm$ then $\iteratekpone=\iteratek$ (reject) and $\Delta_{k+1} = \omegadec\Delta_{k}$
+                \item[] If $\rho_k \ge \gammasm$ and $\rho < \gammabi$ then $\iteratekpone=\iteratek+\trialk$ (accept), $\Delta_{k+1} = \omegadec\Delta_{k}$
+                \item[] If $\rho_k > \gammabi$ then $\iteratekpone=\iteratek+\trialk$ (accept), $\Delta_{k+1} = \omegainc\Delta_{k}$
+                % and either increase the radius or decrease if $\nabla \modelk(\iteratek)$ is small
+            \end{itemize}
+            $k \gets k+1$ and go to Step 1.
+    \end{itemize}
+\end{algorithm}
+
+ 
+
+Much of the work is deferred to the \emph{ConstructTrustRegion} subroutine.
+We will describe several different approaches for this subroutine.
+
+% For convergence analysis, \cref{accuracy} must be satisfied by the trust region choice in this method.
+%Not all searches for an inner trust region must guarantee this: the algorithm is allowed to try a bounded number of trust regions as long as one is gauranteed to satisfy these conditions.
+% In some cases, multiple inner trust regions may be considered before returning the best trust region found.
+% An efficient algorithm may first heuristically search for a good trust region if the guaranteed method is expensive.
+% This may not involve constructing a model or function evaluations.
+
+
+\subsection{Polyhedral Trust Region Approach}
+One simple approach to handle partially-quantifiable constraints is to maintain the same trust region as the classical algorithm, but avoid letting points fall outside the feasible region within the model improvement algorithm \cref{model_improving_algorithm}.
+That is, we add the constraints $\modelconstrainti(x) \le 0 \forall i \in \mathcal{I}$ and $\modelconstrainti(x) = 0 \forall i \in \mathcal{E}$ to the model improvement algorithm while selecting new points.
+This constrains the new points to also lie within the current model of the trust region in \cref{model_improving_algorithm}, Step 2.
+The search space for this optimization problem will be the feasible region intersect the trust region: $\feasiblek \cap \outertrk $.
+
+The challenge lies in finding sufficiently poised sample points.
+Note that \cref{model_improving_algorithm} uses a parameter $  \ximin $ as a lower bound of the pivot values of the Vandermonde matrix.
+For unconstrained problems, this approach could always find a pivot value for any $ \ximin \in (0,1)$ because it optimized over a sphere.
+However, when requiring points to live within $ \feasiblek \cap \outertrk $, it can happen that even after replacing a point, we still have not satisfied this bound.
+In \cref{lspc}, for some values of $  \ximin $, there is no point in $ \feasiblek \cap \outertrk $ that will leave a sufficiently large pivot.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/bad_lambda.png}
+    \caption{Limited sample point choice}
+    \label{lspc}
+\end{figure}
+
+%As the number of dimensions grows the ratio of volume of the trust region intersect the feasible region to the feasible region can become smaller.
+
+One way to handle this is to introduce a $\xi_{\text{cur}}$ which is allowed to decrease.
+(Possibly, until a threshold is reached for maintaining a fixed $\Lambda$.)
+If the new point does not improve the geometry of the set significantly, then there is no other point that would do better.
+To test this, we introduce a constant $\delta_{\text{improv}}>0$ and require a new point to increase the current pivot by a factor greater than $\delta_{\text{improv}}$.
+If the new point does not satisfy this test, we proceed with our current point and possibly decrease $\xi_{\text{cur}}$.
+The new modified improvement algorithm is described in \cref{modified_model_improving_algorithm}:
+
+\begin{algorithm}[H]
+    \caption{Modified Model Improvement Algorithm}
+    \label{modified_model_improving_algorithm}
+    \begin{itemize}
+        \item[\textbf{Step 0}] \textbf{(Initialization)} \\
+            Initialize $i=1$.
+            If the current sample set does not have $p$ points, repeat one of the current points. 
+            Construct the Vandermonde matrix $V_{i,j} = \phi_j(\frac 1 {\Delta}(y^i - y^0))$.
+            Initialize $0 < \ximin < \xi_{\text{desired}}$, $0 <\delta_{\text{improv}} < 1$,
+            $  \xi_{\text{cur}} = \xi_{\text{desired}}$.
+            
+        \item[\textbf{Step 1}] \textbf{(Pivot)} \\
+            Swap row $i$ with row $i_{\max} = \arg \max_{j|j\ge i} V_{j,i} $
+        
+        \item[\textbf{Step 2}] \textbf{(Check threshold)} \begin{itemize}
+                \item[] If $|V_{i,i}| \ge \xi_{\text{cur}} $ then go to Step 3
+                \item[] $ \hat y = \arg\max_{t \in \sampletrk \cap X} |\phi_i(t)|$
+                \item[] If $\label{impossibly_poised} |\phi_i(\hat y)| < \ximin$ then \textbf{Stop}: the algorithm failed
+                \item[] If $\xi_{\text{cur}} - |\phi_i(\hat y)| > \delta_{\text{improv}} \xi_{\text{cur}}$ then replace $V_{i,j}$ with $\phi_j(\hat y)$ and $\xi_{\text{cur}} \gets |\phi_i(\hat y)|$
+            \end{itemize}
+        
+        \item[\textbf{Step 3}] \textbf{(LU)} \begin{itemize}
+                \item[] Set $V_i \gets \frac{1}{V_{i,i}} V_i$
+                \item[] Set $V_{,j} \gets V_{, j} - V_{i,j} V_{\bullet, i} \forall j=i \ldots p$
+            \end{itemize}
+            $i \gets i+1$
+            Go to step 1 unless $i > p$
+    \end{itemize}
+\end{algorithm}
+
+The \emph{ConstructTrustRegion} subroutine for this approach follows the prototype with $\sampletrk = \searchtrk = \feasiblek \cap \outertrk $.
+As is usual, we may also wish to remove points larger than a certain radius from the current model center.
+% If a lower bound $\kappa_{\phi}$ on the maximum value of each polynomial is known ahead of time, then the check on \cref{impossibly_poised} is not needed.
+% That is, for a given set of linear constraints and largest trust region radius, it may be possible to calculate $\xi_{\text{min}} \le \kappa_{\phi} \le \max_{V}\max_{j}\max_{i}\|\phi_i(y^j)\|$.
+
+%Another interesting approach we have not investigated is to decrease the size of the sample set when a new point cannot be computed.
+
+%The analysis for this approach may be more difficult.
+
+
+
+
+\subsection{Ellipsoidal Trust Region Approach}
+
+If we adopt the ellipsoidal trust region approach to maintain a feasible inner trust region with a ``nice" shape we ensure of a stronger version of \cref{accuracy}.
+Namely, we know from \cref{ellipsoidal_lambda} that 
+\[
+    \|\modelk(x) - \nabla f(x) \| \le \kappa_g \Delta_{k} \quad \forall x \in \innertrk.
+\]
+If we also choose our trial point with \cref{search_a_little}, we have no guarantee of satisfying the efficiency condition \cref{efficiency} because $\Delta_k$ is the outer trust region radius.
+However, the model will likely be more accurate over this region.
+
+%If bounds can be shown relating the model error of the inner trust region to the outer trust region, then we will satisfy \cref{accuracy}.
+%In this case, classical methods ensure that $\|\nabla f(x^{(k)}) - \nabla m_f(x^{(k)})\| < \Delta_{inner} \le \Delta_k$.
+
+\subsubsection{Circular Trust Region}
+The simplest approach to maintaining a feasible trust region is to set the inner trust region radius sufficiently small.
+Within the \emph{ConstructTrustRegion} subroutine, this method sets the trust region radius to the distance to the closest constraint:
+$\outertrk = B_2(\iteratek, \min\{\Delta_k, \min_{i}\frac{|A_i\iteratek - b_i|}{\|A_i\|} \})$.
+In practice, this does not work well as the radius can become too small to allow adequate progress.
+
+Two general strategies were considered for addressing this issue as illustrated in \cref{options_basis}.
+One option is to shift the center of the inner trust region as long as it remains within the outer trust region.
+The second option is to elongate the trust region along the nearest constraint as discussed in the next section.
+Of course, both of these can be done at the same time.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=200px]{images/small_circle.png}
+    \includegraphics[width=200px]{images/shifted_center.png}
+    \caption{When the current iterate is too close to a constraint, the circular trust region becomes too small. Shifting the trust region center helps remedy this. The star is the current iterate, the green is the outer trust region, and blue the inner.}
+    \label{options_basis}
+\end{figure}
+
+\subsubsection{Ellipsoids}
+
+In order to address this issue we considered using ellipsoidal trust regions.
+Whereas the circle does not allow improvement when the current iterate lies along a constraint, an ellipsoid elongates along this constraint.
+In figure \cref{ellipse_adv}, we have this type of iterate, but by using an ellipsoid we are still able to search towards the vertex of the feasible region.
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/advantage_of_ellipse_2.png}
+    \caption{A nicer trust region}
+    \label{ellipse_adv}
+\end{figure}
+
+
+More specifically, at iteration $k$, we choose a scaling factor $\pi^k$ and solve for an ellipsoid center $\mu^k$ and positive definite matrix $\qk$ to define an ellipsoid
+$ \ellipsek = \{x \in \mathbb R^n \| \pi^k - \frac 1 2 (x - \mu^{k})^T\qk(x - \mu^{k}) \ge 0 \}$.
+% We then map this back to the origin with the affine transformation $T : \mathbb R^n \to R$, $T(x) = \frac {\sqrt{2}}{\pi^k} L^k(x-\mu^k)$ where $L = cholesky(Q)$.
+% This allows us to construct a $\Lambda$-poised set within narrow trust regions.
+Of course, the simplest approach is to not change the center of the ellipsoid, but instead let $\mu^k = x^k$.
+
+
+\subsubsection{Finding the Maximal $ \ellipsek $ Given $\mu^k$}
+
+\label{ellipse_optimization}
+
+Here, we first solve the problem of finding the maximum-volume ellipsoid given the center.
+Later we perform a search over different centers of the ellipsoid.
+%Because of this, we will first show how to find an ellipsoid with maximum volume given a fixed center.
+We adopt a method similar to that described in \cite{Khachiyan1993}.
+For now, we also let $\pi^k = 1$.
+
+Given a polyhedron $P$ defined by an $m \times n$ matrix $A$,
+\[
+P = \{ x \; | \;  Ax \le b \},
+\]
+we wish to find the maximum-volume ellipsoid $E \subset P$ centered at a point $\mu^{k}$ within this polyhedron.
+
+Let $\bar{b} = b - A\mu^{k}$ and $d = x - \mu^{k}$ so that the polyhedron becomes
+\[
+P = \{ \mu^k + d \; | \;  Ad \le \bar{b} \}
+\]
+The ellipsoid can then be centered at zero, and defined by a symmetric positive definite matrix $Q \succ 0$:
+\[
+E = \{ d \; | \; \frac 1 2 d^T Q d \le 1 \}.
+\]
+Our goal is to determine $Q$ to maximize the volume of $E$ such that $\mu^{k} + E \subset P$.
+Define the auxiliary function 
+\[
+f(d) = \frac 1 2 d^T Q d
+\]
+so that 
+\[
+E = \{ d \; | \; f(d) \le 1 \}.
+\]
+
+Because $Q$ is positive definite, $f$ has a unique minimum on each hyper-plane $A_i d = b_i$.
+Let this minimum be $d^{(i)} = \argmin_{d\| A_id =\bar{b}_i} f(d)$ for $i=1,\ldots,m$.
+By the first order optimality conditions, there exists a $\lambda \in \mathbb R^m$ such that
+\[
+\nabla f(d^{(i)}) = Q d^{(i)} = \lambda_i A_i \quad \forall 1\le i\le m
+\]
+\[
+\Longrightarrow d^{(i)} = \lambda_i Q^{-1}A_i \quad \forall 1\le i\le m
+\]
+We also know that 
+\[
+A_i^T d^{(i)} = \bar{b_i}
+\]
+\[
+A_i^T \lambda_i Q^{-1}A_i = \bar{b_i}
+\]
+\[
+\lambda_i = \frac {\bar{b_i}}{A_i^T  Q^{-1}A_i}
+\]
+so that 
+\[
+d^{(i)} = \lambda_i Q^{-1}A_i = \frac {\bar{b_i}}{A_i^T  Q^{-1}A_i}  Q^{-1}A_i \quad \forall 1\le i\le m.
+\]
+
+Because $E \subset P$, we also know that $f(d^{(i)}) \ge 1$ for each $i$. Thus,
+\[
+\frac 1 2 (d^{(i)})^{T} Q d^{(i)} \ge 1
+\]
+\[
+\Longrightarrow \frac 1 2 \bigg(\frac {\bar{b}_i}{A_i^T  Q^{-1}A_i}  Q^{-1}A_i\bigg)^{T} Q \frac {\bar{b}_i}{A_i^T  Q^{-1}A_i}  Q^{-1}A_i \ge 1
+\]
+\[
+\Longrightarrow \frac 1 2 \frac {1}{A_i^T  Q^{-1}A_i}  \bar{b_i} A_i^T Q^{-1} Q \frac {\bar{b_i}}{A_i^T  Q^{-1}A_i}  Q^{-1}A_i \ge 1
+\]
+\[
+\Longrightarrow \frac 1 2 \frac {1}{A_i^T  Q^{-1}A_i}  \frac {\bar{b_i}^2}{A_i^T  Q^{-1}A_i}  A_i^T Q^{-1}A_i \ge 1
+\]
+\[
+\Longrightarrow \frac 1 2  \frac {\bar{b_i}^2}{A_i^T  Q^{-1}A_i} \ge 1
+\]
+\[
+\Longrightarrow \frac 1 2 \bar{b_i}^2\ge A_i^T  Q^{-1}A_i
+\]
+\[
+\Longrightarrow A_i^T  Q^{-1}A_i \le \frac 1 2 \bar{b_i}^2
+\]
+
+Because the volume of the ellipsoid is proportional to the determinant of $Q^{-1}$, the maximal ellipsoid is defined by
+
+\[
+\qk = V(\mu^k) = \sup_{Q \succeq 0} \det(Q^{-1})
+\]
+\[
+s.t. \quad A_i^T Q^{-1} A_i \le \frac 1 2 \bar{b_i}^2
+\]
+
+
+%This problem includes a maximization of a determinant.
+%In order to ensure that the trust region goes to zero, we must also ensure that the maximum eigenvalue of the matrix is bounded.
+%Thus, for some bound $M^k$ we define $Q^k$ as
+%  & eig(Q)_i \le M^k & \forall i \in \mathcal I \cup \mathcal E \\
+
+After shifting the center to $\mu^{k}$, this problem takes the form:
+
+\begin{center}
+\begin{align}
+\label{ellipse_1}
+\qk = V(\mu^k) = \sup_{Q \succ 0} & \det(Q^{-1}) & \\
+  & {A^k}_i^T Q^{-1} {A^k}_i \ge \frac 1 2 (b^k - A^k\mu^{k})^T(b^k - A^k \mu^{k}) & \nonumber
+\end{align}
+\end{center}
+
+
+%  & \pi^k - \frac 1 2 (x^k - \mu^{k})^TQ^{k}(x^k - \mu^{k}) \ge 0
+
+%if we wish to include the original point explicitly.
+%This gives rise to the trust region sub problem of
+%
+%$$\innertrk = \{x \in \mathbb | 1 - \frac 1 {2\pi^k} (x - \mu^{k})^T Q (x - \mu^{k}) \ge 0\} $$
+%$$ \pi^k = \max \{1, \frac 1 {2} (\iteratek - \mu^{k})^T Q^k (\iteratek - \mu^{k})^T \}$$
+
+\subsubsection{Poisedness over Ellipsoidal Trust Regions}
+\label{ellipsoidal_lambda}
+
+% TODO: Find a better reference
+It is possible to show $\Lambda$-poisedness for an ellipsoidal region with a change of variables to the ball centered around the origin.
+We wish to construct a model for $f(x)$ in the ellipsoidal region
+$\ellipsek = \{x \in \mathbb R^n | (x - c)^T\qk(x - c) \le 1\}$ for some symmetric, positive definite
+$\qk \in \mathbb R^{n\times n}$ and some center $c \in \mathbb R^n$.
+We can give $\qk$ its eigen-decomposition $\qk = L D^2 L^T$, where $L^TL = I$ and $D$ is a diagonal matrix with nonnegative entries.
+If we let $\delta = \max_{x\in \ellipsek}\|x-c\|$, then the transformation $T(x) = \delta DL^T(x - c)$ maps $ \ellipsek $ to the $\delta$ ball $\{u = T(x) \in \mathbb R^n \; | \; \|u\| \le \delta\}$.
+Conversely, $ T^{-1}(u) = \frac 1 {\delta} LD^{-1}u + c$ maps the $\delta$ ball to the ellipsoidal region $ \ellipsek $.
+
+% \cref{fully_quadratic}
+
+\begin{theorem}
+Let $T$ and $\delta$ be as defined above, and let $\hat m_f(u)$ be a model of the shifted objective $\hat f(u) = f(T^{-1}(u))$ in the $\delta$ ball such that
+there exist constants $\kappa_{ef}, \kappa_{eg}, \kappa_{eh} > 0$ such that for all $\{u \in R^n | \;\|u\| \le \delta \}$, we have
+% for all $u \in B(0 ; \delta)$ we have the following error bounds:
+\begin{align*}
+|\hat m_f(u) - \hat f(u)| \le \kappa_{ef} \delta^3\\
+\|\nabla \hat m_f(u) - \nabla \hat f(u)\| \le \kappa_{eg}\delta^2\\
+\|\nabla^2 \hat m_f(u) - \nabla^2 \hat f(u)\| \le \kappa_{eh}\delta.
+\end{align*}
+
+Then, with
+\begin{align*}
+\kappa_{ef}' = \kappa_{ef} \\
+\kappa_{eg}' = \kappa_{eg}\sqrt{\kappa(\qk)} \\
+\kappa_{eh}' = \kappa_{eh}\kappa(\qk),
+\end{align*}
+we have that for all $x \in \ellipsek$,
+the model function $m_f(x) = \hat m_f(T(x))$ will satisfy
+\begin{align*}
+| m(x) - f(x)| \le \kappa_{ef}'\delta^3 \\
+\|\nabla  m(x) - \nabla  f(x)\| \le \kappa_{eg}'\delta^2 \\
+\|\nabla^2 m(x) - \nabla^2 f(x)\| \le \kappa_{eh}'\delta.
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+
+% Notice  that for all $x\in \ellipsek$ we have 
+% \begin{align*}
+% \|x-c\| \le \delta \\
+% \|T(x-c)\| \le \delta \\
+% \end{align*}
+% so that $\frac{\|T(x-c)\|}{\|x-c\|} \le 
+
+We know that $\delta = \frac 1 {\sqrt{\lambda_{\text{min}}(\qk)}} = \frac 1 {\min_{i} D_{i, i}}$.
+This means,
+\begin{align*}
+\kappa(\qk) = \kappa(D^2) = \frac{\max_{i}D_{i,i}^2}{\min_{i}D_{i,i}^2} = \delta^2 \max_{i}D_{i,i}^2 = \delta^2 \|D\|^2 \\
+\|D\| = \frac 1 {\delta} \sqrt{\kappa(\qk)} \le \frac{\kappa_{\lambda}}{\delta}.
+\end{align*}
+
+Also, $\delta \le \dk$ as the ellipse is constructed within the outer trust region.
+\color{red}
+% For all $x \in  \ellipsek$, we have that
+% \begin{align*}
+% \delta^2 \lambda_{\text{min}}(Q) \le \lambda_{\text{min}}(Q) (x-c)^T(x-c) \le (x-c)^TQ(x-c) \le 1 \\
+% \lambda_{\text{max}} x^T x\le 1 \\
+% \|x\|^2 \le \frac 1 {\lambda_{\text{max}}} \\
+% \|x\| \le \frac 1 {\sqrt{\lambda_{\text{max}}}} \\
+% \end{align*}
+
+
+% Notice that because $\ellipsek \subset T(\ellipsek)$ and $\|T(x-c)\| = \|x-c\|$ along the major axis, we must have $\lambda_{\text{min}}(T) = 1$.
+% This means that $\delta min_{i} D_{i,i} = 1 \Longrightarrow \delta = \frac{1}{\min_{i}D_{i,i}}$.
+% Because the major axis of the ellipse is preserved, we also
+% smallest eigenvalue of $T$ is $1$.
+% \begin{align*}
+% \kappa(Q) = \kappa(D^2) = \frac{\max_{i}D_{i,i}^2}{\min_{i}D_{i,i}^2} \ge \delta^2 \max_{i}D_{i,i}^2 = \delta^2\|D\|^2
+% \end{align*}
+
+\color{black}
+
+Then, we have for all $\{u = T(x) \; | \; \|u\| \le \delta \} \Leftrightarrow x \in \ellipsek$
+
+%\Leftrightarrow \{x = T^{-1}(u) \; | \; \|T^{-1}(u)\| \le 1 \} 
+
+% \begin{align*}
+% \delta^2\kappa(Q) = \|D\|
+% \end{align*}
+% smallest eigenvalue of t is one
+% 
+
+\begin{align*}
+ | m_f(x) - f(x)| = |\hat m(u) - \hat f(u)| \le \kappa_{ef}'\dk^3.
+\end{align*}
+
+Similarily, for the gradient we find:
+
+\begin{align*}
+\| \nabla m_f(x) - \nabla f(x)\| = \delta\left\|DL^T\left(\nabla\hat m_f(u) - \nabla \hat f(u)\right)\right\| \le \delta \|DL^T\|\|\nabla \hat m_f(u) - \nabla \hat f(u)\| \le \sqrt{\kappa(\qk)}\kappa_{eg} \delta^2 \\
+\end{align*}
+
+% \begin{align*}
+% \|\nabla \hat m_f(u) - \nabla \hat f(u)\| \le \Lambda \kappa_{eg} \delta^2\\
+% \|\nabla ( m_f(T^{-1}(u))) - \nabla ( f(T^{-1}(u)))\| \le \Lambda \kappa_{eg} \delta^2\\
+% \|\nabla \left( m_f(\frac 1 {\delta} D^{-T}L^Tu + c)\right) - \nabla \left( f(\frac 1 {\delta} D^{-T}L^Tu + c)\right)\| \le \Lambda \kappa_{eg} \delta^2\\
+% \|\frac 1 {\delta} LD^{-1} \nabla  m_f(\frac 1 {\delta} D^{-T}L^Tu + c) - \frac 1 {\delta} LD^{-1} \nabla  f(\frac 1 {\delta} D^{-T}L^Tu + c)\| \le \Lambda \kappa_{eg} \delta^2\\
+% \|LD^{-1} \left(\nabla  m_f(x) - \nabla  f(x)\right)\| \le \Lambda \kappa_{eg} \delta^3\\
+% \|DL^T\|\|LD^{-1} \left(\nabla  m_f(x) - \nabla  f(x)\right)\| \le \Lambda \kappa_{eg} \delta^3 \left(\frac {\kappa_{\lambda}} {\delta}\right) \\
+% \|\nabla  m(x) - \nabla  f(x)\| \le \Lambda \kappa_{eg}' \delta^2 \le \Lambda \kappa_{eg}' \dk^2. \\
+% \end{align*}
+Finally, we show that for the Hessian:
+
+\begin{align*}
+\| \nabla^2 m_f(x) - \nabla^2 f(x)\| = \delta^2\left\|DL^T\left(\nabla\hat m_f(u) - \nabla \hat f(u)\right)LD^T\right\| \le \delta^2 \|D\|^2\|\nabla \hat m_f(u) - \nabla \hat f(u)\| \le \kappa(\qk)\kappa_{eh} \delta \\
+\end{align*}
+
+% \begin{align*}
+% \|\nabla^2 \hat m_f(u) - \nabla^2 \hat f(u)\| \le \Lambda \kappa_{eh} \delta\\
+% \|\nabla^2 \left(m_f(\frac 1 {\delta} D^{-T}L^Tu + c)\right) - \nabla^2 \left(f(\frac 1 {\delta} D^{-T}L^Tu + c)\right)\| \le \Lambda \kappa_{eh} \delta\\
+% \frac 1 {\delta^2} \|LD^{-1} \nabla^2 m_f(\frac 1 {\delta} D^{-T}L^Tu + c) D^{-T}L^T - LD^{-1} \nabla^2 f(\frac 1 {\delta} D^{-T}L^Tu + c) D^{-T}L^T\| \le \Lambda \kappa_{eh} \delta\\
+% \|LD^{-1} \left(\nabla^2 m_f(x) - \nabla^2 f(x) \right) D^{-T}L^T\| \le \Lambda \kappa_{eh} \delta^3 \\
+% \|DL^T\|\|LD^{-1} \left(\nabla^2 m_f(x) - \nabla^2 f(x) \right) D^{-T}L^T\|\|LD\| \le \Lambda \kappa_{eh}\delta^3\left(\frac {1}{\delta^2}\kappa(\qk)\right)  \\
+% \|\nabla^2 m_f(x) - \nabla^2 f(x)\| \le \Lambda \kappa_{eh}' \delta \le \Lambda \kappa_{eh}' \dk\\
+% \end{align*}
+
+
+
+
+% \begin{align*}
+% \min_{i}D_{i,i} = \frac{\dk }{\text{length longest axis of ellipse}} \\
+% \frac{1}{\min_{i}D_{i,i}} = \frac{\text{length longest axis of ellipse}}{\dk } \le 1\\
+% \frac{1}{\min_{i}D_{i,i}^2} = \bigg(\frac{\text{length longest axis of ellipse}}{\dk }\bigg)^2 \le 1\\
+% \kappa(Q) = \max_i D_{i,i}^2 \bigg(\frac{\text{length longest axis of ellipse}}{\dk }\bigg)^2 \le \max_i D_{i,i}^2\\
+% \kappa(Q) = \frac{\max_{i}D_{i,i}^2}{\min_{i}D_{i,i}^2} = \|D\|\delta \le \kappa_{\lambda} \\
+% \|DL^T\| \le \frac{\kappa_{\lambda}}{\delta}\\
+% \end{align*}
+
+\end{proof}
+
+This shows that in order to have strongly quadratic model functions, we need only bound the condition number of $\qk$.
+For the purposes of a convergence proof, we need only satisfy the weaker accuracy condition \cref{accuracy}.
+Notice that in practice the model functions do not need to be mapped to the $\delta$ ball, because $\Lambda$-poisedness is scale invariant \cite{DUMMY:intro_book}.
+The implications of this proof are discussed futher in the convergence discussion \cref{convergence_discussion}.
+
+% After constructing a $\Lambda$-poised set on the unit ball, we can construct a shifted model function
+%  that accurately models a shifted objective  over a ball.
+% Namely, from , we know that for some constants , we have that for all :
+ 
+
+% Letting $\delta = \frac 1 {\min_i D_{i,i}^2}$, and forcing the condition number of $Q$ to be less than or equal to a fixed constant $\kappa_{\lambda}$, we see that
+%\color{red}
+%We notice that the length of the largest axis of the ellipsoid is bounded by $\dk$, so that $\min_{i}D_{i,i}^2 \le \dk$.
+%\color{black}
+
+%Given a constant $\kappa_{\lambda} > 0$, we force 
+%so that
+
+
+% right hand sides are one
+% little delta is the max|x-c|, x \in  E
+% T(x) = little delta DL^T(x - c)
+% smallest eigenvalue of t is one
+% \kappa(little delta ^2 Q) = \|D\|
+% mapping onto little delta
+
+
+
+%These new constants $\kappa_{ef}', \kappa_{eg}', \kappa_{eh}'$ depend only on the largest eigenvalue of $Q$.
+
+\subsubsection{Ellipsoid Choices}
+
+There are a number of issues to be solved to define this ellipsoid:
+\begin{itemize}
+\item How do we ensure that $\iteratek \in \ellipsek $?
+\item How do we choose $\ellipsek$ in such a way that it does not limit travel along a decent direction?
+\item How do we choose the center of the ellipsoid $\mu^k$?
+\end{itemize}
+
+% \item How do we choose $\ellipsek$ to make the  ellipsoid as large as possible while ensuring that $ \ellipsek \subset \outertrk \cap \feasiblek $?
+
+If $\iteratek \not \in \searchtrk $, the ellipse may not even contain a point with any reduction.
+Thus, we have implemented a few ways of ensuring the current iterate is within the search trust region.
+This can be done by either of the following two options:
+\begin{itemize}
+\item Adding a constraint to the ellipsoid problem to include the original point.
+\item Expand the size of the ellipsoid.
+\end{itemize}
+
+%IMAGES GO HERE
+
+\paragraph{Adding a constraint.}
+In order to include the original point as a constraint, we add a constraint to the definition of the ellipsoid of the following form:
+$$ \pi^k - \frac 1 2 (x^k - \mu^{k})^T\qk(x^k - \mu^{k}) \ge 0. $$
+Constraints of this nature make finding the ellipsoid much more expensive.
+This is because the optimization problem we construct uses ${\qk}^{-1}$ as decision variables, so that constraints in terms of $\qk$ must model matrix inversion.
+
+\paragraph{Increase the size.}
+An alternative is to scale $\qk$ by a constant.
+We use the scaling factor $\pi^k$ defined by
+
+$$\pi^{(k)} = \max \{1, \frac 1 {2} (x^{k} - \mu^{k})^T \qk (x^{k} - \mu^{k})^T \}$$
+
+and let the ellipsoid be:
+$$\ellipsek = \{x \in \mathbb | 1 - \frac 1 {2\pi^k} (x - \mu^{k})^T \qk (x - \mu^{k}) \ge 0\} $$
+However, this means that in general $\ellipsek \not \subset \feasiblek$ so that the trust region subproblem must contain constraints for both the ellipsoid and the feasible region: $\searchtrk = \ellipsek \cap \domain$.
+
+To help mitigate the second issue, we maximize the volume of the ellipsoid.
+However, the choice of ellipsoid center can still limit travel along a decent direction.
+Choosing the best center is the topic of the next section.
+
+\paragraph{One theoretical concern}
+
+%The are some other concerns to be considered while defining the ellipsoid.
+% While choosing $\ellipsek$, 
+
+%We also want consecutive ellipsoid to share volume, in order to avoid evaluating as many points as possible.
+%(So far, we have been re-evaluating the set of trial points each iteration.)
+
+
+Lastly, when $\ellipsek \subset \feasiblek$, we may not be able find a second order solution.
+This is becase the ellipsoid can only be tangent to the constraint, and some decent paths may be missed.
+In \cref{fbns}, the red line represents a path in the feasible region that is always decreasing.
+However, if the trust regions decrease without intersecting this path, the algorithm will not be aware of this descent path.
+However, scaling the trust region to the outer green radius may allow the algorithm to ensure global convergence to second order critical points.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=200px]{images/second_order_critical_point.png}
+    \caption{Potential issue with a second order critical point.}
+    \label{fbns}
+\end{figure}
+
+
+
+% Finally, we have the problem of computing the ellipsoid once given a suitable definition.
+
+
+\subsection{Searches for the Center}
+
+We consider several different approaches for determining the trust region center $\mu^k$.
+In this case, our \emph{ConstructTrustRegion} subroutine searches over multiple centers of the ellipsoid, however it may not need to construct the model functions for each until it has found a desirable ellipsoid.
+
+
+
+
+%For now, we maximize the volume of $E_k$, .
+
+%For now, we have simply used the heurstic $H(E_k) \to \text{Vol}(E_k)$.
+%Given a huristic $H : \innertrk \to \Theta$, where $\Theta$ is a set of comparable elements, the \emph{ConstructTrustRegion} routine follows the following template:
+
+%\begin{algorithm}[H]
+%    \caption{Heuristic Search}
+%    \label{heuristic_search}
+%    \begin{itemize}
+%        \item[] \textbf{Initialization} Initialize $T_{\text{best}} = \emptyset$, $\theta_{\text{best}} = H(T_{\text{best}})$
+%            
+%        \item[] \textbf{For all $\mu \in$ search space do:} \begin{itemize}
+%                \item[] $T_{\text{trial}} \gets \arg\max_{E_k \text{centered at} \mu} \text{Vol}(E_k)$
+%                \item[] $\theta_{\text{trial}} = H(T_{\text{trial}})$
+%                \item[] If $\theta_{\text{trial}} \le \theta_{\text{best}}$ then continue
+%                \item[] $T_{\text{best}} = T_{\text{trial}}$
+%                \item[] $\theta_{\text{best}} = \theta_{\text{trial}}$
+%            \end{itemize}
+%    \end{itemize}
+%\end{algorithm}
+
+
+\subsubsection{Search Everything}
+
+One approach is to search all possible centers within $ \feasiblek \cap \outertrk $.
+That is, we solve:
+$$\mu^k = \sup_{\mu \in \feasiblek \cap \outertrk} V(\mu)$$
+where $V(\mu)$ is the volume of the ellipsoid defined in \cref{ellipse_1}.
+%The search within the \emph{ConstructTrustRegion} is allowed to go anywhere within $ \feasiblek \cap \outertrk$.
+This has the advantage that it captures much of the feasible region.
+However, one problem with this search is that it can force the trust region away from the desired direction.
+Notice that in \cref{ellipse_runs_away}, although the ellipsoid found has larger volume than before being shifted, this ellipsoid contains points farther from the corner containing the minimizer.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/everything_runs_1.png}
+    \includegraphics[scale=0.4]{images/everything_runs_2.png}
+    \caption{Searching $\feasiblek$}
+    \label{ellipse_runs_away}
+\end{figure}
+
+
+One attempt to fix this problem is by limiting the search direction for the center of the ellipsoid.
+
+
+\subsubsection{Line Searches}
+Although $\modelk$'s minimizer over $\outertrk$  can appear anywhere, there are some reasons for expecting it to be at a ``vertex."
+If it lies in the interior, there is little need for using constrained approaches once near the solution.
+
+%The ellipsoid with maximum volume, however, tends to lead $ \sampletrk $ away from vertices.
+One way of trying to ensure a feasible direction towards a vertex, while still allowing a larger volume ellipsoid, is by limiting the search for the new center to lie on line segments starting at the current iterate $\iteratek$.
+
+For example, our first attempt was to simply search a line directed orthogonally away from the closest constraint.
+This has obvious problems as shown in \cref{first_line_search}, as we should avoid letting the new center get closer to another constraint:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/line_1.png}
+    \includegraphics[scale=0.4]{images/line_2.png}
+    \caption{Line searches}
+    \label{first_line_search}
+\end{figure}
+
+
+For a given distance $d$, let the indices $i$ for which $\frac {|A_i x - b|}{\|A_i\|} \le d$
+
+
+To fix this, we break the search space within the \emph{ConstrucTtrustRegion} subroutine into segments based on the nearest constraints.
+The algorithm works by choosing a set of up to $n_{\text{points}}$ points $s_1, s_2, \ldots, s_{n_{\text{points}}}$ that are each equidistant to a subset of the constraint's faces.
+The center search then considers points along the line segments between these points.
+% Namely, it starts at the current iterate and travels along a ray away from all the closest constraints until it reaches a point equidistant to yet another constraint.
+
+More precisely, the first point is chosen to be the current iterate: $s_1 = \iteratek$.
+The algorithm then repeats the following process for $i$ from $1$ to $n_{\text{points}}$.
+First, compute the set of nearest constraints, where the distance from a point $x$ to a constraint $A_i$ is given by $d(A_i, x) = \frac {|A_i x - b|}{\|A_i\|}$.
+While finding the next point $s_{i+1}$, let  $A_E$ be a normalized array of the equidistant faces $\{\frac{A_i}{\|A_i\|} | d(A_i, s_i) = \min_j d(A_j, s_i), i = 1, 2, \ldots, m\}$ and $b_E$ be the rows' corresponding values of $b$.
+All other faces are called the remaining faces, and construct the matrix $A_R$ and vector $b_R$.
+It then finds a search direction $p  = r{A_E}^T$ as a linear combination of the normal vectors to the equidistant faces.
+%When the constraint violation of $s_i$ is non-zero, this search ray can be found by finding the point that doubles the current slack ${A_E}s_i-{b_E}$.
+%This is given by $r{A_E}^T$ where $r$ solves the linear system ${A_E}(s_i + r{A_E}^T) - b_E = 2 ({A_E}n_i - b_E)$.
+%If the current violation is zero, then the right hand side can be set to a vector of all ones to ensure that all slacks violations are the same: $A_E(s_i + r{A_E}^T) - b_E = 1$.
+This search ray can be found by setting the slack to each equidistant face to a vector of all ones: $A_E(s_i + r{A_E}^T) - b_E = 1$.
+We can travel along this ray until we reach a point that is the same distance to a remaining face.
+Specifically, we can travel by 
+\begin{align}
+t = \argmin_j {\frac{d({A_E}_0, s_i) - d({A_R}_j, s_i)}{ {A_R}_j - d({A_E}_0) p} | ({A_R}_j - d({A_E}_0) p > 0 }. 
+\end{align}
+
+We can then set $s_{i+1} = s_{i} + t p$.
+
+Of course, $n_{\text{points}}$ must be less than or equal to $n + 1$ in order for this to be defined.
+Also, the algorithm must stop early if $A_E$ contains parallel faces.
+
+% if we let $\nabla \modelconstrainti(\iteratek) = A_i$ be the $i$th row of $A$, then we define the distance from a search point $s$ so the $i$th constraint to be
+
+
+This means that we can define a class of searches that each limit the number of line segments to search $n_{\text{points}}$.
+
+In figure \cref{line_can_run}, the red line shows the line segments equidistant their closest constraints.
+Notice that with two line segments, the algorithm can already choose new centers further from the vertex.
+
+% TODO: REPLACE PICTURES
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/run_away_1.png}
+    \includegraphics[scale=0.4]{images/run_away_2.png}
+    \caption{Ellipse runs away from the optimizer}
+    \label{line_can_run}
+\end{figure}
+
+
+
+
+\section{Convergence Discussion}
+\label{convergence_discussion}
+
+If the tolerances $\tau_{\chi} = 0$ and $\tau_{\Delta} = 0$ are set to zero, the algorithm presented here is a particular implementation of the algorithm presented in \cite{doi:10.1080/10556788.2015.1026968}.
+Thus, five hypothesis are required for the convergence analysis:
+
+\begin{itemize}
+\item[H0] The trial point during each iterate satisfies the efficiency condition \cref{efficiency}.
+\item[H1] The function $f$ is differentiable and its gradient $\nabla f$ is Lipschitz continuous over $\domain$.
+\item[H2] The function $f$ is bounded below over $\domain$.
+\item[H3] The Hessian's of $f$ are uniformly bounded at each iterate.
+\item[H4] The accuracy condition \cref{accuracy}.
+\end{itemize}
+
+Hypothesis H1, H2, and H3 are kept as assumptions within our algorithm.
+Hypothesis 0 is satisfied by the Generalized Cauchy Point \cite{Conn:2000:TM:357813} if we set $\searchtrk = \outertrk \cap \feasible$ as discussed in \cref{search_a_lot}.
+As discussed in \cref{ellipsoidal_lambda}, Hypothesis H4 is satisfied by letting $\sampletrk$ have an ellipsoidal shape as discussed within \cref{bluepill} as long as the condition number of $\qk$ is bounded.
+
+However, we must ensure that we are always able to find a feasible ellipsoid.
+Although it is not always possible to find a feasible ellipsoid that contains the current iterate,
+we can find a feasible ellipse that needs only be scaled by a constant to do so.
+It is shown in \cite{Billups_Larson_2013} that a lambda poised set over a sphere remains lambda poised over a larger sphere (with a larger lambda).
+
+The following proof shows that such a feasible ellipse exists, and provides the required equations for constructing the ellipse.
+
+\begin{theorem}
+Given a polyhedron $P = \{x | Ax \le b \}$, where the rows of $A$ are linearly independent, and a point $\xk \in P$,
+there exists an ellipsoid $E = \{x | (x - c)^TQ(x - c) \le \frac 1 2 \epsilon \}$ within the polyhedron $E \subset P$,
+such that $(\xk - c)^TQ(\xk - c) \le \epsilon$.
+\end{theorem}
+
+\begin{proof}
+Assume without loss of generality that $A$ and $b$ have been normalized so that $\|A_i\| = 1$.
+Let $\mathcal A$ be the set of active constraints at $\xk$: $\mathcal A = \{ i | A_ix = b_i\}$.
+If $\mathcal A = \emptyset$, then we are free to select $c = \xk, Q = I$, and $ \epsilon $ sufficiently small.
+Otherwise, compute $u = -A_{\mathcal A}^T(A_{\mathcal A}A_{\mathcal A}^T)^{-1} e$, $\hat u = \frac {u} {\| u\|} $, $\alpha = -\max_{i \in \mathcal A} A_i \hat u$, and define the cones
+\begin{align}
+C_1 = \{x \in \mathbb R^n | \quad x = \xk + t\hat u + s, s^T\hat u = 0, t > 0, \|s\| \le \alpha t\} \label{s_less_t} \\
+C_2 = \{x = (t, s)^T \in \mathbb R^n, t \in \mathbb R, s \in \mathbb R^{n-1} |\quad \|s\| \le a t \}.
+\end{align}
+
+First, we show that $C_1$ is feasible with respect to the active constraints at $\xk$,
+by letting $y = \xk + t\hat u + s\in C_1$ as in \ref{s_less_t} and $i \in \mathcal A$ be arbitrary.
+With these definitions, the active constraints are satisified at $y$:
+\begin{align*}
+A_{i}y - b_{i} = A_{i}(t\hat u + s) = A_{i}s + t A_{i}n \le \|s\| - \alpha t \le 0.
+\end{align*}
+
+Now, for an arbitrary $\delta > 0$, let 
+$f(x): \mathbb R^n \to \mathbb R$ be defined by 
+\begin{align*}
+f(x) = (x - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(x - \delta e_1) - \frac 1 2 \delta^2,
+\end{align*} 
+and consider the ellipsoid $E_1 = \{x | f(x) \le 0\}$.
+We will show that $E_1 \subseteq C_2$.
+Letting $t \in \mathbb R$ be arbitrary, we see that
+\begin{align*}
+2\big(t - \frac {\delta} 2\big)^2 \ge 0
+\Longrightarrow 2t\delta - \frac 1 2 \delta^2 \le 2t^2 
+\Longrightarrow \frac 1 2 \delta^2 - (t - \delta)^2 \le t^2. 
+\end{align*}
+
+% \Longrightarrow \frac 1 2 \delta^2 -t^2  + 2t\delta - \delta^2 \le t^2 \\
+% \Longrightarrow 0 \le t^2 - t\delta + \frac 1 4 \delta^2
+%  \Longrightarrow 0 \le 2t^2 - 2t\delta + \frac 1 2 \delta^2\\
+If we further suppose that $x = (t, s)^T \in E_1$ for some $s \in \mathbb R^{n-1}$, we see that
+\begin{align*}
+(x - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(x - \delta e_1) \le \frac 1 2 \delta^2 \\
+\Longrightarrow (t - \delta)^2 + \frac {1} {\alpha^2} \|s\|^2 \le \frac 1 2 \delta^2 \\
+\Longrightarrow \|s\|^2 \le \alpha^2 \big(\frac 1 2 \delta^2 - (t - \delta)^2\big) \le \alpha^2t^2\\
+\Longrightarrow \|s\| \le \alpha t\\
+\end{align*}
+so that $x \in C_2$.
+Also, note that by scaling the ellipse by a factor of $2$, the ellipsoid
+
+\begin{align*}
+\bigg \{x \bigg | (x - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(x - \delta e_1) \le \delta^2 \bigg\},
+\end{align*}
+includes the origin:
+\begin{align*}
+(0 - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(0 - \delta e_1) = \delta^2 \le \delta^2.
+\end{align*}
+
+All that remains is to translate this ellipsoid by $\xk$ and rotate $\hat u$ into $e_1$ with the rotation matrix $R \in SO(n)$:
+\begin{align*}
+R = 2\frac{(e_1 + \hat u)(e_1 + \hat u)^T}{(e_1 + \hat u)^T(e_1 + \hat u)} - \boldsymbol I
+\end{align*}
+which satisfies
+\begin{align*}
+Re_1 = \hat u, \quad
+R\hat u = e_1, \quad
+\det(R) = 1.
+\end{align*}
+
+
+Thus, with $Q = R^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}R$, $c = \xk - \delta \hat u$, $\epsilon = \delta^2$ we have constructed a feasible ellipse
+\begin{align*}
+E_2 = \bigg \{x \bigg | (x - \xk - \delta \hat u)^T\bigg(R^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}R\bigg)(x - \xk - \delta \hat u) \le \frac 1 2 \delta^2 \bigg\},
+\end{align*}
+for sufficiently small $\delta$, that can be scaled by $2$ to include $\xk$.
+Note that the condition number of this matrix is $\sigma(Q) = \frac{\max\{1, \alpha^{-2}\}}{\min\{1, \alpha^{-2}\}}$,
+as the condition number is not affected by rotations.
+The value of $\alpha$ only depends on the polyhedron, and is therefore bounded given a problem.
+
+
+\end{proof}
+
+
+% \paragraph{}
+% While including a center search and only using a sphere for $\sampletrk$ ensures that this will be the case as long as there is an interior point to the feasible region.
+% However, for more complicated ellipsoid searches must be able to find an ellipse.
+% One strategy that ensures the ellipse can be constructed for all of our ellipse searches is to find an ball containing the current iterate and running a local search optimization routine with this initial ball as input.
+
+
+% 
+% \paragraph{}
+% Another strategy is to add a check within the \emph{ConstructTrustRegion} routine that decreases the trust region radius whenever a suitable ellipse is not found.
+% The presented convergence analysis will still hold as $S$ can contain only finitely many terms not in $\bar S$.
+
+% \paragraph{}
+% \color{red}
+% For convex constraints, there will exist a bound on the condition numer of $\qk$ as long as $\outertrk$ is bounded.
+% An argument for this might be as follows:
+% Maybe, by increasing the outer trust region radius, we can only increase the condition number of $\qk$.
+% \color{black}
+
+
+

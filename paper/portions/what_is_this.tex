@@ -1,0 +1,84 @@
+
+
+\begin{align}
+f(q) = \sum_{j=0}^m\frac{(q-p)^{\beta}}{\beta !}f^{(\beta)}(p) + \Theta_{m+1}(q; p)
+\end{align}
+
+\begin{align}
+??f^{(\alpha)}(q) = \sum_{j=0}^m\frac{(q-p)^{\beta}}{\beta !}f^{(\alpha + \beta)}(p) + \Theta_{m+1}(q; p).....
+\end{align}
+
+
+
+\begin{align}
+R_{n+1}(q, p) = \sum_{|\alpha| = n+1} \frac{(q-p)^{\alpha}}{\alpha !}f^{(\alpha)}(\tilde{qp})
+\end{align}
+
+\begin{align}
+\Theta_{m+1}(q;p) = [\sum_{j=m+1}^{\bar{n}-1} \frac{(q-p)^{\alpha}}{\alpha !}f^{(\alpha)}(p) + R_{n+1}(q;p)]
+\end{align}
+
+\begin{align}
+E^{\alpha}(p; \sigma) = L^{\alpha}(p;\sigma) - f^{(\alpha)}(p) = \sum_{i=0}^{m} \Theta_{m+1}(p_i, p) l_i^{\alpha}(p; \sigma)
+\end{align}
+
+\begin{align}
+E^{\alpha}(p; \sigma) = \sum_{i=0}^{m} [\sum_{j=m+1}^{\bar{n}-1} \frac{(p_i-p)^{\alpha}}{\alpha !}f^{(\alpha)}(p) + R_{n+1}(p_i;p)] l_i^{\alpha}(p; \sigma)
+\end{align}
+
+\begin{align}
+E^{\alpha}(p; \sigma) = \sum_{i=0}^{m} [\sum_{j=m+1}^{\bar{n}-1} \frac{(p_i-p)^{\alpha}}{\alpha !}f^{(\alpha)}(p) + \sum_{|\alpha'| = n+1} \frac{(p_i-p)^{\alpha'}}{\alpha' !}f^{(\alpha')}(\tilde{p_ip})] l_i^{\alpha}(p; \sigma)
+\end{align}
+
+
+\begin{align}
+|f^{(\alpha)}(p)| \le \epsilon^{\alpha}(p)
+\end{align}
+
+\begin{align}
+|E^{\alpha}(p; \sigma) |\le \sum_{i=0}^{m} [\sum_{j=m+1}^{\bar{n}-1} \frac{|p_i-p|^{\alpha}}{\alpha !}\epsilon^{\alpha}(p) + \sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}\epsilon^{\alpha'}(\tilde{p_ip})] |l_i^{\alpha}(p; \sigma)|
+\end{align}
+
+\begin{align}
+\epsilon^{\alpha'}(\tilde{p_ip}) \le \epsilon_{\text{max}}
+\end{align}
+
+\begin{align}
+\epsilon^{\alpha}(p) \le \epsilon^{\alpha}
+\end{align}
+
+\begin{align}
+|E^{\alpha}(p; \sigma)| \le \sum_{i=0}^{m} [\sum_{j=m+1}^{\bar{n}-1} \epsilon^{\alpha}\frac{|p_i-p|^{\alpha}}{\alpha !} + \epsilon_{\text{max}}\sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}] |l_i^{\alpha}(p; \sigma)|
+\end{align}
+
+
+\begin{align}
+|E^{\alpha}(p; \sigma)| \le \sum_{i=0}^{m} [\sum_{j=m+1}^{\bar{n}-1} \epsilon^{\alpha}\frac{|p_i-p|^{\alpha}}{\alpha !}|l_i^{\alpha}(p; \sigma)| + \epsilon_{\text{max}}\sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}|l_i^{\alpha}(p; \sigma)|] 
+\end{align}
+
+
+
+
+\begin{align}
+|E^{\alpha}(p; \sigma)| \le  \sum_{i=0}^{m}\sum_{j=m+1}^{\bar{n}-1} \epsilon^{\alpha}\frac{|p_i-p|^{\alpha}}{\alpha !}|l_i^{\alpha}(p; \sigma)| + \epsilon_{\text{max}}\sum_{i=0}^{m}\sum_{j=m+1}^{\bar{n}-1}\sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}|l_i^{\alpha}(p; \sigma)|
+\end{align}
+
+
+
+
+\begin{align}
+|E^{\alpha}(p; \sigma)| \le \sum_{i=0}^{m}|l_i^{\alpha}(p; \sigma)|[\sum_{j=m+1}^{\bar{n}-1} \epsilon^{\alpha}\frac{|p_i-p|^{\alpha}}{\alpha !}|l_i^{\alpha}(p; \sigma)| + \epsilon_{\text{max}}(\bar{n} - m)\sum_{i=0}^{m}\sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}]
+\end{align}
+
+
+\section{$n=2$, $m=2$}
+\begin{align}
+|E^{\alpha}(p; \sigma)| \le \sum_{i=0}^{m}|l_i^{\alpha}(p; \sigma)|[\sum_{j=m+1}^{\bar{n}-1} \epsilon^{\alpha}\frac{|p_i-p|^{\alpha}}{\alpha !}|l_i^{\alpha}(p; \sigma)| + \epsilon_{\text{max}}(\bar{n} - m)\sum_{i=0}^{m}\sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}]
+\end{align}
+
+
+
+\section{$n=2$, $m=4$}
+\begin{align}
+|E^{\alpha}(p; \sigma)| \le \sum_{i=0}^{m}|l_i^{\alpha}(p; \sigma)|[\sum_{j=m+1}^{\bar{n}-1} \epsilon^{\alpha}\frac{|p_i-p|^{\alpha}}{\alpha !}|l_i^{\alpha}(p; \sigma)| + \epsilon_{\text{max}}(\bar{n} - m)\sum_{i=0}^{m}\sum_{|\alpha'| = n+1} \frac{|p_i-p|^{\alpha'}}{\alpha' !}]
+\end{align}

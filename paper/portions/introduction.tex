@@ -1,0 +1,609 @@
+
+\section{Introduction}
+
+Derivative free optimization (DFO) refers to mathematical programs involving functions for which derivative information is not explicitly available.
+Such problems arise, for example, when the functions are evaluated by simulations or by laboratory experiments.
+In such applications, function evaluations are expensive, so it is sensible to invest significant computational resources to minimize the number of function evaluations.
+
+This work is ultimately aimed at developing algorithms to solve constrained optimization problems of the form 
+
+\[ \begin{array}{ccl} \min_{x \in \domain} & f(x) \\
+\mbox{subject to} & c_i(x) \le 0 & i \in \mathcal{I} \\
+& c_i(x) = 0 & i \in \mathcal{E},
+\end{array}
+\]
+where $\domain$ is a subset of $\real^n$, and $f$ and $c_i, i \in \mathcal{I} \cup \mathcal{E}$ are real-valued functions on $X$ with at least one of these functions being a {\em black-box} function, meaning that derivatives cannot be evaluated directly.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% We consider two variations of this problem.
+% In the first variation, we assume that the constraints are fully quantifiable.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+We are interested in developing {\em model-based} trust-region algorithms for solving these problems.
+Model-based methods work by constructing model functions to approximate the black box functions at each iteration.
+The model functions are determined by fitting previously evaluated function values on a set of sample points.
+In trust-region methods, the model-functions are used to define a trust-region subproblem whose solution determines the next iterate.
+For example, the trust-region subproblem might have the form
+
+\[ \begin{array}{ccl} \min_{\norm{s} \le \Delta_k}
+ & \modelk (\iteratek+s) \\
+\mbox{subject to} & \modelconstrainti(\iteratek + s) \le 0 & i \in \mathcal{I} \\
+& \modelconstrainti(\iteratek + s) = 0 & i \in \mathcal{E},
+\end{array}
+\]
+where $\iteratek$ is the current iterate, $\modelk$ is the model function approximating $f$,  and $\modelconstrainti$ are the model functions approximating the constraint functions $c_i, \forall i \in \mathcal{I} \union \mathcal{E}$, and $\Delta_k$ is the radius of the trust-region.
+The key differences between this problem and the original is that all functions are replaced with their model functions, and a trust region constraint has been added.
+Conceptually, the model functions are ``trusted'' only within a distance $\Delta_k$ of the current iterate $\iteratek$; so the trust-region subproblem restricts the length of step $s$ to be no larger than $\Delta_k$.
+To ensure that the model functions are good approximations of the true functions over the trust region, the sample points are typically chosen to lie within, or at least near, the trust-region.
+
+
+We are specifically interested in applications were some of the black box functions cannot be evaluated outside the feasible region.
+As in \cite{DUMMY:typesofconstraints}, quantifiable means that the functions can be evaluated at any point in $X$ and that the values returned for the constraint functions provide meaningful information about how close the point is to a constraint boundary.
+We assume that the black-box functions return meaningful numerical values \emph{only} when evaluated at feasible points.
+In this case, the constraints are called {\em partially quantifiable}.   
+As such, we impose the requirement that all sample points must be feasible.
+
+An important consideration in fitting the model functions is the ``geometry'' of the sample set.
+This will be discussed in more detail in \cref{geometry}, but the key point is that the relative positions of the sample points within the trust region have a significant effect on the accuracy of the model functions over the trust region.
+When the geometry of the sample set is poor, it is sometimes necessary to evaluate the functions at new points within the trust region to improve the geometry of the sample set.
+It is well understood how to do this for unconstrained problems; but for constrained problems with all feasible sample points, some interesting challenges must be overcome.
+The requirement that the sample points must be feasible impacts the ``geometry" of the sample set.
+In this paper we explore several strategies for choosing feasible sample points with good geometry.
+In particular, we consider ellipsoidal and polyhedral trust region strategies.
+As a first step toward developing an algorithm to solve such problems, \emph{we consider a simplified problem where all of the constraints are linear}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% In the case of fully quantifiable constraints, there is no difficulty in using sample points outside of the feasible region.  
+% In Chapter \cref{chap:Filter}, we describe a Trust-Region SQP Filter method for solving this class of problems.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+% 
+% \subsection{Always Feasible Motivation}
+% 
+% Algorithms that maintain feasibility in both the iterates and sample points provide some useful qualities.
+% Firstly, they are able to solve problems with \emph{partially-quantifiable} constraints.
+% One scenario in which partially-quantifiable constraints may arise is within the problem of minimizing an expensive simulation.
+% 
+% %\begin{center}
+% %\includegraphics[width=200px]{images/infeasible_constraint.png}
+% %\end{center}
+% 
+% If the runtime of the simulation depends on its inputs, and the simulation is not allowed to finish when a runtime threshold is met, the runtime will force some inputs to be infeasible.
+% However, when the simulation does complete, its runtime is quantifiable, and can be used to construct a model of the infeasible region.
+% An algorithm that wishes to minimize this simulation is forced to account for this constraint.
+% 
+% 
+% An always feasible algorithm is also an \emph{any-time} algorithm.
+% Anytime algorithms are a class of algorithms that can conveniently be run as long as desired and return the best solution found so far if interrupted.
+% These algorithm are of practical importance when problems have uncertain time complexity.
+% 
+
+
+\section{Background}
+
+\subsection{Notation}
+
+Any variables that depend on the iteration will be super-scripted by $k$.
+For example, the $k$-th iterate is given by $\iteratek$, and the model of the objective is given by $\modelk$.
+The $i$-th row of the matrix $A$ is denoted $A_i$, while the $i$-th column is denoted $A_{\bullet i}$.
+Subscripts on vectors are used as an index into the vector, while vectors in a sequence of vectors use superscripts.
+Matrices are denoted with capital letters, and we use $e_i$ to denote the $i$-th unit vector.                     %, while sets are denoted with capital italic letters.
+
+$B_k(c; \Delta)$ is the ball of radius $\Delta$ in the $k$ norm, centered at point $c$ .
+$\delta_{i,j}$ is the kronecker delta, $\delta_{i,i} = 1$, $\delta_{i,j} = 0$ if $i\ne j$.
+
+
+\subsection{Model-based Trust Region Methods}
+
+We will modify the following derivative free trust region algorithm.
+%A set of poised points are chosen for some radius $\Delta_k>0$ about the current iterate.
+The objective value and derivatives are approximated in a trust region around the current iterate to construct their model functions.
+Next, this model function is minimized over the trust region and the minimum argument becomes the trial point.
+The objective is evaluated at the trial point and a measure of reduction $\rho$ is computed.
+If $\rho$ implies that sufficient reduction has been made and that the model approximates the function well, the trial point is accepted as the new iterate.
+Otherwise, the trust region is reduced to increase model accuracy.
+The algorithm terminates when both and a criticality measure $\chik$ and the trust region radius $\Delta_k$ reach sufficiently small thresholds of $\tau_{\chi}$ and $\tau_{\Delta}$.
+
+
+For unconstrained optimization, the algorithmic framework is described in \cref{unconstrained_dfo}.
+% 	\begin {itemize}
+%         \item The objective is evaluated at a set of sample point $Y$ to approximate $f$ \cref{interpolation}
+%         \item Geometric properties ensure bounds on $f(x) - \modelk(x)$, $\nabla f(x) - \gradmodelk(x)$, and $\nabla^2 f(x) - \nabla^2\modelk(x)\;\forall x$ in the trust region \cref{geometry}
+% 		%\[
+% 		%\modelk(x) = f(\iteratek) + \nabla f(\iteratek)^T (x-\iteratek) + \frac 1 2 (x-\iteratek)^T\nabla^2f(\iteratek)(x-\iteratek)
+% 		%\]
+% 		\item If $\rho$ is large, $\iteratekpone=\iteratek+\trialk$ (accept) and either increase the radius or decrease if $\nabla \modelk(\iteratek)$ is small
+% \end{itemize}
+
+\begin{algorithm}[H]
+    \caption{Unconstrained Derivative Free Algorithm}
+    \label{unconstrained_dfo}
+    \begin{itemize}
+        \item[\textbf{Step 0}] \textbf{(Initialization)} \\
+            Initialize tolerance constants $\tau_{\chi} \ge 0$, $\tau_{\Delta} \ge 0$, starting point $x^{(0)}$, initial radius $\Delta_0 > 0$, iteration counter $k=0$, and constants $\omegadec \in (0, 1)$, $ \gammasm \in (0, 1)$, $\gammabi \in (\gammasm, 1)$.
+            
+        \item[\textbf{Step 1}] \textbf{(Construct the model function)} \\
+            Call the model improvement ``\cref{model_improving_algorithm}" to provide a set of sample points $Y^{(k)}$.
+            Evaluate the objective on these points and use interpolation \cref{interpolation_formula} to construct the model function $\modelk(x)$.
+        
+        \item[\textbf{Step 2}] \textbf{(Check stopping criteria)} \\
+            Compute the criticality measure $\chik$ such as $\chik = \|\nabla\modelk(\iteratek)\|$. \begin{itemize}
+                \item[] If $ \chik < \tau_{\chi} $ and $\Delta_k<\tau_{\Delta}$ then return solution $\iteratek$.
+                \item[] If $ \chik < \tau_{\chi} $ but $\Delta_k\ge\tau_{\Delta}$ then  
+                set $\Delta_{k+1} \gets \omegadec\Delta_{k}$, 
+                $x^{(k+1)} \gets \iteratek$,
+                $k \gets k+1$ and go to Step 1.
+            \end{itemize}
+        
+        \item[\textbf{Step 3}] \textbf{(Solve the trust region subproblem)} \\
+            Compute $\trialk = \argmin_{s\in B_2(0; \Delta_k)} \modelk (\iteratek + s)$ where $B_2(0; \Delta_k)$ is the ball of radius $\Delta_k$ defined in \cref{tab:TableOfNotation}.
+            
+        \item[\textbf{Step 4}] \textbf{(Test for improvement)} \\
+            Compute $\rho$ with \cref{rho} \begin{itemize}
+                \item[] If $\rho < \gammasm$ then $\iteratekpone \gets \iteratek$ (reject) and $\Delta_{k+1} \gets \omegadec\Delta_{k}$
+                \item[] If $\rho \ge \gammasm$ and $\rho < \gammabi$ then $\iteratekpone\gets\iteratek+\trialk$ (accept) $\Delta_{k+1} \gets \omegadec\Delta_{k}$
+                \item[] If $\rho \ge \gammabi$ and $\|\trialk\| = \Delta_{k}$ then $\iteratekpone=\iteratek+\trialk$ (accept) $\Delta_{k+1} \gets \omegainc\Delta_{k}$
+                % and either increase the radius or decrease if $\nabla \modelk(\iteratek)$ is small
+            \end{itemize}
+            $k \gets k+1$ and go to Step 1.
+    \end{itemize}
+\end{algorithm}
+
+This derivative-free optimization algorithm differs from the classical trust region algorithm in two important respects:
+\begin{enumerate}
+    \item Models are constructed without derivative information.
+    \item The trust region radius $\Delta_k$ must go to zero as $k\to\infty$.
+\end{enumerate}
+
+This is required to ensure that the gradient of the model function is equal to the gradient of $f$ in the limit.
+Our goal is to generalize this framework to handle constraints, where we must ensure no constraint violation occurs while also ensuring the accuracy of the models of the constraints.
+% Two challenges while adopting this framework to derivative free optimization are
+% 
+% Because explicit derivatives are not available, Taylor approximations cannot be used.
+% The alternative to Taylor approximations that we employ is interpolation.
+% Also, classical trust region methods do not require $\Delta_k \to 0$, but the bounds on model accuracy in derivative free optimization depend on the trust region radius.
+% This means that in order to ensure $\nabla f < c\tau$ using the approximation  $\nabla \modelk < \tau$, the trust region must be sufficiently small.
+%   
+  
+
+\section{Derivative Free Background}
+% 
+% \subsection{Strategy}
+% A reasonable approach to DFO is to modify classical algorithms that rely on derivatives by using the derivatives of the model functions whenever a derivative is needed in the algorithm.
+% However, the lack of explicit derivatives pose several challenges, which necessitate changes in the classical algorithms.
+% First, care must be taken to ensure that the model functions are sufficiently accurate approximations to the true functions.
+% This means that geometry of the sample points must be considered.
+% It also means that the trust-region radius must get arbitrarily small.
+% 
+% The transition to the derivative-free setting also provides some interesting research opportunities.
+% In particular, because function evaluations are so costly, there is potential for significant gains by considering more complex optimization paradigms.
+% For example, Sequential Quadratic Programming (SQP) methods use subproblems involving quadratic approximations of the objective function $f$ and linear approximations of the constraint functions.
+% In the derivative-free setting, it may be worthwhile to explore other variations of the classical algorithms.
+% For example, it might be worthwhile to construct quadratic models of the constraint functions, which might result in fewer iterations overall.
+% 
+% It might also be worthwhile to consider using different sample sets for fitting different functions.  
+% For example, the SQP trust-region filter method involves constructing a quadratic model of the objective function and linear models of the constraint functions.  But this raises an interesting question, since a good sample set for constructing a quadratic model may not be ideal for fitting the linear functions modeling the constraints.  
+
+\subsection{Recent Work}
+\paragraph{Applications}
+Recently, there has been a growth in applications of derivative free optimization.
+Such applications include photo-injector optimization \cite{1742-6596-874-1-012062}, circuitry arrangements \cite{PLOSKAS201816}, machine learning \cite{KS2018}, volume optimization \cite{Cheng2017}, and reliability based optimization \cite{Gao2017}.
+
+\paragraph{Constrained derivative free algorithms}
+To address the rise in these applications, new algorithms are being developed such as \cite{doi:10.1080/10556788.2015.1026968} which is an algorithm similar to the one presented here, but the sample points are not always feasible.
+\cite{Troltzsch2016} presents another similar algorithm for equality based constraints.
+\cite{infeasiblestarting} presents an algorithm which accepts an infeasible starting point.
+\cite{Gao2018} also presents an algorithm for linearly constrained derivative free optimization that uses a backtracking technique to minimize the number of evaluations required.
+
+\paragraph{Subproblems}
+Some work has been done within trust region algorithms to improve the update policy \cite{Kamandi2017}.
+Also, \cite{Verderio2017} and \cite{doi:10.1080/10556780802409296} discuss geometric conditions of the sample points required for global convergence.
+Finally, \cite{AMAIOUA201813} uses a mesh adaptive search to solve quadratic subproblems.
+
+
+\paragraph{Complexity Analysis}
+
+A derivation is found in \cite{doi:10.1137/151005683} which shows that to driver the norm of the gradient less than $\epsilon$, the number of function evaluations can be bounded by $O(\epsilon^{-2})$ 
+%and $O(n^2\epsilon^{-2})$ 
+function evaluations for derivative free model based approaches. Also, cubic over estimation with finite differences can acheive $O(\epsilon^{-1.5})$. \cite{doi:10.1093/imanum/drx043} is another recent paper presenting complexity analysis using probabilistic methods.
+
+
+\paragraph{Reviews}
+Within \cite{DUMMY:intro_book} derivative-free methods are developed in detail.
+This is the first text book devoted to derivative free optimization.
+It contains a good explanation of ensuring geometry of the current set with poisedness for unconstrained problems and also covers other derivative-free methods including direct-search and line search.
+
+A good review of derivative free algorithms and software libraries can be found in \cite{DUMMY:review}.
+This compares several software libraries, and reviews the development of derivative free optimization since it started.
+Another recent review can be found in \cite{DUMMY:review2} and \cite{Larson_2019}.
+
+% TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+% READ THIS
+
+
+\subsection{Sample Set Geometry}
+\subsubsection{Interpolation}
+\label{interpolation}
+
+Derivative free trust region methods construct model functions from a family of functions spanned by a set of $p \in \mathbb N$ basis functions  $\{\phi_0, \phi_2, \ldots, \phi_p\}$.
+Each member of this family has the from $\modelk(x) = \sum_{i=0}^p\alpha_i\phi_i(x)$ for some scalar coefficients $\alpha_i, i \in \{0, \ldots, p\}$.
+
+In our method, we use interpolation to choose the coefficients so that $\modelk$ agrees with $f$ on a set of $p+1$ sample points $Y = \{y^0, y^1, \ldots, y^p\}$ for which the functions have been evaluated.
+Thus the model functions must satisfy:
+\begin{align}
+\label{interpolation_condition}
+\modelk(y^i) = f(y^i) \quad \forall \quad 0 \le i \le p.
+\end{align}
+This is known as the \emph{interpolation condition}.
+
+To satisfy the interpolation condition \cref{interpolation_condition}, we then chose this linear combination by selecting coefficients $\alpha_0, \ldots, \alpha_p$ to satisfy
+\begin{align}
+\label{interpolation_formula}
+    \modelk(y^i) = \sum^p_{j=0}\alpha_j\phi_j(y^i) = f(y^i) \quad \forall \quad 0 \le i \le p.
+\end{align}
+
+% We can also write this equation in matrix form.
+If we define the Vandermode matrix as
+\begin{align}
+\label{vandermonde}
+V=
+\begin{bmatrix}
+    \phi_0(y^0)      & \phi_1(y^0)       & \ldots & \phi_{p}(y^0)      \\
+    \phi_0(y^1)      & \phi_1(y^1)       & \dots  & \phi_{p}(y^1)      \\
+                     &                   & \vdots &                    \\
+    \phi_0(y^{p})    & \phi_1(y^{p})     & \ldots & \phi_{p}(y^{p})
+\end{bmatrix},
+\end{align}
+
+the interpolation condition becomes:
+\begin{align}
+\label{matrix_form}
+V
+\begin{bmatrix}
+    \alpha_0     \\
+    \alpha_1     \\
+    \vdots       \\
+    \alpha_p
+\end{bmatrix}
+=
+\begin{bmatrix}
+    f(y^0)     \\
+    f(y^1)     \\
+    \vdots     \\
+    f(y^p)
+\end{bmatrix}
+\end{align}
+
+% Suppose that we use $p+1$ sample points $Y = \{y^0, y^1, \ldots, y^p\}$ to construct the approximation of $f$.
+We desire a method for choosing these sample points that provides error bounds on not only the function values, but also on orders of derivatives in some region around the current iterate.
+% The model is constructed to agree with the original functions on at least the sample points: we evaluate the objective here, so that we know the true function values at these points.
+% For the objective, this becomes
+
+%It is convenient to write the model as a linear combination of basis polynomials $\{\phi_0, \phi_2, \ldots, \phi_p\}$.
+
+
+\subsubsection{Geometry}
+\label{geometry}
+The term \emph{geometry} describes how the distribution of points in the sample set $Y$ affects the model's accuracy.
+\cref{matrix_form} has a unique solution if and only if $V$ is nonsingular, in this case, we say that the sample set $Y$ is \emph{poised} for interpolation with respect to the basis functions $\phi_i$.
+However, even when $V$ is nonsingular but ``close" to singular, as measured by its condition number, the model's approximation may become inaccurate.
+% The condition number of $V$ measures how far the current Vandermode matrix is from being illpoised.
+Algorithms must be careful to avoid choices of sample points $Y$ that cause the condition number of this matrix to be too large.
+
+In the case of polynomial model functions, a careful analysis of model accuracy can be performed using \emph{Lagrange polynomials}.
+Let the space of polynomials with degree less than or equal to $d$ be denoted $\polydn$ and have dimension $p+1$.
+The Lagrange polynomials $l_0, l_1, \ldots, l_p$ for the sample set $Y$ are a basis of $\polydn$ such that
+\[
+l_i(y^j) = \delta_{i,j}
+\]
+where $\delta_{i,j} = \{0 \;\text{if}\; i\ne j,\quad 1 \;\text{if} \; i = j \}$ is the Kronecker-delta function.
+%For example, after this change of basis, note that the Vandermonde matrix becomes the identity matrix.
+Thus, we can conveniently write
+\[
+\label{reg}
+\modelk(x) = \sum^p_{j=0}f(y^i)l_i(x).
+\]
+%This implies computing the change of basis to the Lagrange polynomials amounts to inverting this Vandermonde matrix.
+%This relationship allows us to use properties of the Vandermonde matrix and these Lagrange polynomials to find conditions on our sample points that ensure nice geometry.
+
+We say that a set $Y$ is \emph{$\Lambda$-poised} for a fixed constant $\Lambda$ with respect to a bases $\phi$ on the set 
+$B \subset \mathbb R^n$ if and only if for the Lagrange polynomials $l_i$ associated with $Y$
+\begin{align}
+\Lambda \ge \max_{0\le i\le p}\max_{x\in B}|l_i(x)|.
+\end{align}
+
+% This can be shown to be equivalent to the following condition \cite{DUMMY:intro_book}.
+% For any $x \in B_2(0, 1)$ there is a $\lambda \in \mathbb R ^ {p+1}$ such that 
+% \begin{align}
+% \sum_{i=0}^p\lambda_i\phi_i(y^i) = \phi(x) \\
+% \|\lambda\|_{\infty} \le \Lambda.
+% \end{align}
+
+% This can ensure that the Vandermonde matrix is well conditioned.
+This is useful because of the following results \cite{DUMMY:intro_book}:
+Assuming that $f$ is twice continuously differentiable in an open domain containing $B_2(y^0, \Delta)$ and has a Lipschitz continuous Hessian, using quadratic interpolation there exist constants $\kappa_{ef}, \kappa_{eg}$, and $\kappa_{eh}$ depending only on the dimension and Lipschitz constant of $\nabla^2 f$ such that for any $y \in B_2(y^0, \Delta)$ :
+\begin{align}
+ \label{fully_quadratic}
+ \|f(y) - \modelk(y)\| \le \kappa_{ef} \Lambda \Delta^3 \\
+ \|\nabla f(y) - \nabla \modelk(y)\| \le \kappa_{eg} \Lambda \Delta^2 \\
+ \|\nabla^2 f(y) - \nabla^2 \modelk(y)\| \le \kappa_{eh}\Lambda \Delta .\\
+\end{align}
+\cite{DUMMY:intro_book} also shows that ensuring a bound on the condition number of the Vandermonde matrix ensures $\Lambda$-poisedness.
+
+In particular, these bounds ensure that the following accuracy condition is satisfied, which is used by \cite{Conejo:2013:GCT:2620806.2621814} to prove convergence to a first order critical point: 
+\begin{equation}
+\label{accuracy}
+\|\nabla \modelk(\iteratek) - \nabla f(\iteratek) \| \le \kappa_g \Delta_k
+\end{equation}
+ for some fixed constant $\kappa_g$ independent of $k$.
+We will extend these results for ellipsoidal trust regions in \cref{ellipsoidal_lambda}.
+ 
+
+%used to find the coefficients $\lambda$ to express the model function in terms of a basis of Lagrange polynomials $l_i$
+The following example illustrates how interpolating with an ill-poised set can produce an inaccurate model.
+% Problems become apparent when comparing the Lagrange polynomials associated with a poised set with those of an ill poised set.
+In \cref{pvip}, a set of quadratic polynomials is used to interpolate the function $f(x) = 5 + x + y + (x + y) ^ 2 - \frac 1 {250} y ^ 4$.
+We can see that the difference between the model and $f$ are much larger when the points are chosen to be nearly collinear.
+This results in a much higher $\Lambda$.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=200px]{images/poised_good.png}
+    \includegraphics[width=200px]{images/poised_bad.png}
+    \caption{
+		Poised vs Ill poised.
+		On the left, a well poised sample set is used and the model is indistinguishable from the true function.
+		On the right, the sample set has poor geometry, and the model goes above the true function.
+	}
+    \label{pvip}
+\end{figure}
+
+
+A more detailed discussion can be found in \cite{doi:10.1080/10556780802409296}, but a step to ensure good geometry is required for convergence analysis although it may come at the expense of adding more function evaluations.
+
+\subsubsection{Geometry Ensuring Algorithms}
+
+Sample points are chosen by a geometry ensuring algorithm.
+At any given time, the algorithm has evaluated 1 or more sample points.
+Initially, only the starting point $x_0$ is evaluated, so that points must be added to the sample set.
+Evaluated points within the trust region should be reused when possible, but the algorithm may have to replace some points to ensure a well poised set on the new trust region.
+We call the algorithm that adds points, replacing where necessary, the \emph{model improvement algorithm}.
+One classic such algorithm is presented in \cite{DUMMY:intro_book}.
+
+The idea behind this algorithm is to perform an LU factorization with partial pivoting on the Vandermonde matrix.
+As we have seen, this computes the basis for the Lagrange polynomials corresponding to $Y$.
+However, when this LU factorization encounters a small pivot, the point corresponding to that row is replaced, improving the condition number of the Vandermonde matrix.
+
+In practice, we first shift the sample set $Y$ by subtracting the current iterate and dividing by the trust region radius:
+\begin{align}
+\bar{Y} = [0, \frac{y^1 - y^0}{\Delta}, \ldots, \frac{y^p - y^0}{\Delta}]
+\end{align}
+
+At times, the algorithm will not have all $p+1$ points.
+This can be because it is only given one point during initialization, or because points not within the trust region are removed.
+Because the model improvement algorithm requires all $p+1$ points, we initialize $y^i = y^0$ for any $0 < i \le p$ corresponding to a missing point.
+We choose a threshold $0 < \ximin < 1$, and follow \cref{model_improving_algorithm}:
+
+\begin{algorithm}[H]
+    \caption{Model Improvement Algorithm}
+    \label{model_improving_algorithm}
+    \begin{itemize}
+        \item[\textbf{Step 0}] \textbf{(Initialization)} \\
+            Initialize $i=1$.
+            Given a non-empty set $Y$ of $p+1$ points. 
+            Construct the Vandermonde matrix $V_{i,j} = \phi_j(\frac 1 {\Delta}(y^i - y^0))$.
+			Initialize constant $\ximin > 0$.
+        \item[\textbf{Step 1}] \textbf{(Pivot)} \\
+            Swap row $i$ with row $i_{\max} = \arg \max_{j|j\ge i} V_{j,i} $
+        
+        \item[\textbf{Step 2}] \textbf{(Check threshold)} \begin{itemize}
+                \item[] If $|V_{i,i}| < \ximin$ then select \label{next_point} $\hat y = \argmax_{t | \|t\|\le 1} |\phi_i(t)|$
+                \item[] Replace row $i$ with $V_{i, j} \gets \phi_j(\hat y)$.
+            \end{itemize}
+        
+        \item[\textbf{Step 3}] \textbf{(LU)} \begin{itemize}
+                \item[] Set $V_i \gets \frac{1}{V_{i,i}} V_i$
+                \item[] Set $V_{\bullet j} \gets V_{\bullet j} - V_{i,j} V_{\bullet j} \forall j=i \ldots p$
+            \end{itemize}
+            If $i = p$ then \textbf{Stop}, otherwise Set $i \gets i+1$ and go to Step 1
+    \end{itemize}
+\end{algorithm}
+% 
+% \paragraph{Proximity}
+% 
+% Proximity refers to the trust region radius.
+% The trust region must go to zero if we are to be sure we have reached a critical point.
+% In general, the smaller the trust region, the closer to linear or quadratic the original function will look.
+% This is because the model's error term is proportional to the trust region radius.
+% 
+% In classical trust region algorithms, there is no need for the trust region radius to go to zero.
+% Therefore, extra care must be taken to ensure this while modifying such algorithms.
+
+
+% \begin{algorithmic}
+% \If{$\rho < \gamma_1$}
+%     \State $\iteratekpone \gets \iteratek$ (reject)
+%     \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
+% \ElsIf{$\gamma_1 \le \rho \le \gamma_2$}
+%     \State $\iteratekpone\gets \gets \iteratek + \trialk$ (accept)
+%     \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
+% \ElsIf {$\rho > \gamma_2$}
+%     \State $\iteratekpone \gets \iteratek + \trialk$ (accept)
+%     \If
+%         \State $\Delta_{k+1} \gets \omega_{\text{dec}} \Delta_k$
+%     \Else
+%         \State $\Delta_{k+1} \gets \omega_{\text{inc}} \Delta_k$
+%     \EndIf
+% \EndIf
+% \end{algorithmic}
+
+
+\subsection{Algorithm Components}
+
+
+
+
+We will discuss several building blocks of the algorithm before going into the algorithm's detail.
+
+
+
+
+\subsubsection{Criticality Measure}
+
+In order to define stopping criteria for the algorithm, we introduce a criticality measure $\chi$ which goes to zero as the iterates approach a first order critical point.
+When the criticality measure is small, we must also decrease the trust region radius.
+Once this has reached a small enough threshold $\tau_{\chi}$ and the trust region is small enough ($\Delta_k < \tau_{\Delta}$), we can terminate the algorithm.
+For now, our algorithm is designed to work with convex constraints, so we employ a classic criticality measure discussed in \cite{ConnGoulToin00} of
+
+\[
+\chik = \|\iteratek - \text{Proj}_{\feasiblek}(\iteratek- \nabla \modelk(\iteratek))\|
+\]
+where $\feasiblek$ denotes the feasible region: $\feasiblek = \{x \in X | \modelconstrainti(x) \le 0 \quad \forall i \in \mathcal I \wedge c_i(x) = 0 \quad \forall i \in \mathcal E \}$.
+This criticality measure measures how far the current is from satisfying the first order optimality conditions for $\iteratek$ to be a constrained minimum of $\modelk$.
+When $ \lim_{k\to\infty} \chik = 0$, $\lim_{k\to\infty}\Delta_k = 0$, and $\lim_{k\to\infty}\iteratek = x^{\star}$, then we have that $x^{\star}$ also satisfies the first order optimality conditions of being a constrained minimum of $f$.
+
+%we have $x = \text{Proj}_{\feasiblek}(x - \nabla \modelk(x))$ so that
+
+$\chik$ can be computed as 
+\begin{align}
+\label{critical}
+\trialk = \min_{s \in \feasiblek} \|\iteratek - \nabla \modelk(\iteratek) - s\|^2 \\
+\chik = \|\iteratek - \trialk \|^2 \\
+\end{align}
+
+% This remains large while there is feasible search space along a descent direction, but small otherwise or if the gradient goes to zero.
+
+% Namely, when $ \chik(x) = 0$, we have $x = \text{Proj}_{\feasiblek}(x - \nabla \modelk(x))$ so that there is no decent direction along $\nabla \modelk(x)$ as it points away from the feasible region.
+% As $\Delta_k$ gets smaller, we also have that $\modelk$ better represents $\nabla f$, so that $\nabla f$ will also either be zero or lie in the iterate's normal cone.
+
+\subsubsection{Assessing Model Accuracy and Radius Management}
+
+Each iteration that evaluates a trial point must also test the accuracy of the model functions.
+To test the accuracy, we calculate a quantity
+\begin{equation}
+\label{rho}
+\rho_k = \frac{f(\iteratek) - f(\iteratek+\trialk)}{\modelk(\iteratek) - \modelk(\iteratek+\trialk)}
+\end{equation}
+which measures the actual improvement over the predicted improvement.
+A small $\rho_k$ implies the model functions are not sufficiently accurate.
+Values of $\rho_k$ close to $1$ imply that the model accurately predicted the new objective value.
+A large $\rho_k$ implies progress minimizing the objective although the model was not accurate.
+This has been widely used within trust region frameworks such as \cite{Conn:2000:TM:357813} and within a derivative free context \cite{DUMMY:intro_book}.
+The user supplies fixed constants $0 < \gammasm \le \gammabi \le 1$ as thresholds on $\rho_k$ and $0 < \omega_{\text{dec}} < 1 \le \omega_{\text{inc}}$ as decrement or increment factors to determine the trust region update policy.
+The update policy frequently follows Step 4 within algorithm \cref{unconstrained_dfo} repeated within \cref{trust_region_update} for ease.
+
+\begin{algorithm}[H]
+    \caption{Trust Region Update Policy}
+    \label{trust_region_update}
+    \begin{itemize}
+        \item[\textbf{Step 4}] \textbf{(Test for improvement)} \\
+            Compute $\rho_k$ with \cref{rho} \begin{itemize}
+                \item[] If $\rho_k < \gammasm$ then set $\iteratekpone \gets \iteratek$ (reject) and $\Delta_{k+1} \gets \omegadec\Delta_{k}$
+                \item[] If $\rho_k \ge \gammasm$ and $\rho < \gammabi$ then set $\iteratekpone\gets\iteratek+\trialk$ (accept) and $\Delta_{k+1} \gets \omegadec\Delta_{k}$
+                \item[] If $\rho_k \ge \gammabi$ and $\|\trialk\| = \Delta_{k}$ then set $\iteratekpone=\iteratek+\trialk$ (accept) and $\Delta_{k+1} \gets \omegainc\Delta_{k}$
+                % and either increase the radius or decrease if $\nabla \modelk(\iteratek)$ is small
+            \end{itemize}
+            $k \gets k+1$ and go to Step 1.
+    \end{itemize}
+\end{algorithm}
+
+\subsubsection{Sufficient Model Reduction}
+
+To ensure sufficient reduction of the objective's model function during each iteration, we impose the following efficiency condition:
+\begin{equation}
+\label{efficiency}
+\modelk(\iteratek) - \modelk(\iteratek + \trialk) \ge \kappa_f \chi_k \min\left\{ \frac{\chi_k}{1+\|\nabla^2 \modelk(\iteratek)\|}, \dk, 1 \right\}
+\end{equation}
+where $\kappa_f$ is a constant independent of $k$.
+This is widely used within trust region frameworks such as \cite{Conejo:2013:GCT:2620806.2621814} and \cite{Conn:2000:TM:357813}.
+It can be shown that the \emph{generalized Cauchy point} satisfies this condition \cite{Conn:2000:TM:357813}.
+
+
+\subsubsection{Trust Regions}
+Our algorithm maintains up to three trust regions.
+The outer trust region is an $L_1$ ball of radius $ \dk $ defined by
+\begin{equation}
+\label{trust_region}
+\outertrk = B_{\infty}(\iteratek,\dk) = \{x\in \mathbb R^n | \; {\iteratek}_i - \dk \le x_i \le {\iteratek}_i + \dk \quad \forall 1\le i \le n\}.
+\end{equation}
+
+Note that the outer trust region may include infeasible points.
+To ensure feasibility of all sample points, we construct an inner trust region for sample points $ \sampletrk $  satisfying 
+$\sampletrk \subset \outertrk \cap \feasiblek$ and $\iteratek \in \sampletrk $.
+However, we do not want to limit the search for a new iterate to the same trust region we use to construct the model.
+This means we introduce another trust region $ \searchtrk $ that also satisfies $ \searchtrk \subset \outertrk \cap \feasiblek$ and $\iteratek \in \searchtrk $ for the trust region subproblem.
+
+
+We consider general strategies for constructing $ \sampletrk $ and $ \searchtrk $.
+\begin{itemize}
+\item[1.] Take $\label{redpill} \sampletrk = \searchtrk = \outertrk \cap \feasiblek $. This results in a polyhedral trust region, so we refer to this approach as the \emph{Polyhedral Trust Region Approach}.
+% \item[2.] Let $\label{hybrid} \sampletrk \subseteq \searchtrk = \outertrk \cap \feasiblek $ where $\sampletrk$ has an ellipsoidal shape. This is referred to as the \emph{Hyrbid Trust Region Approach}
+\item[2.] Force $\label{bluepill} \sampletrk \subseteq \searchtrk \subseteq \outertrk \cap \feasiblek $ where $\sampletrk$ has an ellipsoidal shape. This is referred to as the \emph{Ellipsoidal Trust Region Approach}
+\end{itemize}
+
+The advantage of the ellipsoidal trust region approach \cref{bluepill} is that we can reuse classical methods for ensuring good geometry.
+We can construct $\sampletrk$ to be ellipsoidal and use efficient algorithms within \cite{DUMMY:intro_book} to satisfy \cref{accuracy}.
+However, we must be careful while choosing $ \searchtrk$ to allow sufficient reduction when we solve the trust region subproblem using the inner trust region.
+The search trust region is used while selecting the next iterate:
+\begin{align*}
+\trialk = \argmin_{\trialk \in \searchtrk} \modelk(\iteratek + \trialk)
+\end{align*}
+
+\label{which_trust_region}
+When using the ellipsoidal trust region approach, we have two choices for this trust region:
+\begin{align}
+\searchtrk = \sampletrk \label{search_a_little}
+\end{align}
+\begin{align}
+\searchtrk = \outertrk \cap \feasiblek \label{search_a_lot}
+\end{align}
+Namely, in \cref{search_a_little} with an ellipsoidal inner trust region, we still have an option to select our trial point from the entire $\trialk \in \outertrk \cap \feasiblek$.
+
+To complete the polyhedral trust region approach \cref{redpill}, %$\innertrk = \outertrk \cap \feasiblek$
+, we need some redefinition of poisedness for polyhedral shapes.
+However, since the trust region is larger, it is easier to ensure sufficient reduction.
+This strategy has the drawback that it will yield sample points close to the boundary of the feasible region.
+This may cause more infeasible evaluation attempts when we use models to approximate black-box constraints this may.
+
+The classical methods for ensuring good geometry require an optimization call to the model functions over a sphere.
+This is no longer possible in the polyhedral trust region approach.
+However, the bounds produced over the entire trust region may also be stronger than required as the models will only be used on the feasible region.
+This may mean the geometric requirements can be reduced.
+Looking again at the ill-poised set in \cref{aoip}, the set of nearly collinear sample points actually does appear to be accurate over a smaller trust region.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=200px]{images/poised_bad_but_good.png}
+    \caption{Accurate model over thin trust region from illpoised set}
+    \label{aoip}
+\end{figure}
+
+
+Within our algorithm, if $ \outertrk \subseteq \feasiblek$ we can set $ \sampletrk $ to be a sphere.
+This saves the computation of $ \sampletrk $ when it is not needed, as there are no nearby constraints.
+
+
+
+
+% \paragraph{}
+% While including a center search and only using a sphere for $\sampletrk$ ensures that this will be the case as long as there is an interior point to the feasible region.
+% However, for more complicated ellipsoid searches must be able to find an ellipse.
+% One strategy that ensures the ellipse can be constructed for all of our ellipse searches is to find an ball containing the current iterate and running a local search optimization routine with this initial ball as input.
+
+
+% 
+% \paragraph{}
+% Another strategy is to add a check within the \emph{ConstructTrustRegion} routine that decreases the trust region radius whenever a suitable ellipse is not found.
+% The presented convergence analysis will still hold as $S$ can contain only finitely many terms not in $\bar S$.
+
+% \paragraph{}
+% \color{red}
+% For convex constraints, there will exist a bound on the condition numer of $\qk$ as long as $\outertrk$ is bounded.
+% An argument for this might be as follows:
+% Maybe, by increasing the outer trust region radius, we can only increase the condition number of $\qk$.
+% \color{black}
+
+
+

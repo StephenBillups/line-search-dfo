@@ -1,0 +1,386 @@
+
+\color{black}
+
+\section{Bounding projection accuracy}
+\subsection{Notes}
+
+I think there might should be a positive part in the $g$ portion.
+
+\subsection{Definitions}
+
+\begin{align*}
+C = \{ x \in X | Gx\le g, Dx = g \} \\
+C' = \{ x \in X | G'x\le g', D'x = g' \} \\
+\|G - G'\| \le \epsilon \\
+\|g - g'\| \le \epsilon \\
+\|D - D'\| \le \epsilon \\
+\|d - d'\| \le \epsilon \\
+\xo = \argmin_{x\in C}\|x\|^2 \\
+\xo' = \argmin_{x\in C'}\|x\|^2 \\
+G = \begin{bmatrix}A \\ B\end{bmatrix} \\
+g = \begin{bmatrix}a \\ b\end{bmatrix} \\
+N = \begin{bmatrix}B \\ D\end{bmatrix}\\
+N' = \begin{bmatrix}B' \\ D'\end{bmatrix}\\
+\text{rank}(N) = r \\
+\text{rank}(N') = r \\
+\end{align*}
+
+Split $G$ and $g$ such that
+$Bx = b$ for all $x \in C$ and either $A$ is empty or there exists an $\hat x \in C$ and $h > 0$ such that $A\hat x \le a - h$.
+
+\subsection{Assumptions}
+
+%The dimension of the range of $B'$ on $X$ equals the dimension of the range of $B$ on $X$ for all $\epsilon \ge 0$.
+The dimension of the range of $N$ on $X$ equals the dimension of the range of $N'$ on $X$ for all $\epsilon \ge 0$.
+
+
+\subsection{Explanation}
+
+\begin{theorem}[Hoffman's theorem of \cite{dummy:hoffman}]
+\label{hoffman}
+Suppose that $Ax \le b$ is consistent.
+Then there exists a value $\Gamma_0(A, b) > 0$ such that for any such $x$, there exists an $x_0$ with
+\begin{align*}
+Ax_0 \le b \\
+\|x - x_0\| \le \Gamma_0(A, b) \|(Ax - b)^+\|. \\
+\end{align*}
+
+This $\Gamma_0(A,b)$ is defined as follows, where $i_1, i_2, \ldots, i_r$ are the linearly independent rows of $A$ (which are assumed to be normalized) and $C_{i,j}$ is the $i,j$ cofactor of $C$:
+\begin{align*}
+\Lambda(C) = \sqrt{\sum_{j=1}^r\bigg(\sum_{i=1}^r C_{i,j}\bigg)^2} \\
+\Gamma_0(A, b) = \sqrt{\frac{\sum_{1 < j_1 < \ldots < j_k \le n} \|\Lambda^{j_1,\ldots,j_r}_{i_1,\ldots, i_r}\|_{\infty}^2}{\sum_{1 < j_1 < \ldots < j_k \le n} \|A^{j_1,\ldots,j_r}_{i_1,\ldots, i_r}\|_{\infty}^2}} \\
+\end{align*}
+
+Note that there also needs to be a constant for changing the metric norm.
+\end{theorem}
+
+\begin{theorem}[Theorem 1.1 of \cite{dummy:continuity_of_inverse}]
+For two matrices $A$ and $B$, if $B = A + E$ and $\text{rank}(A) = \text{rank}(B)$, then
+
+\begin{align*}
+\|B^{\dagger} - A^{\dagger} \| \le \frac{1 + \sqrt{5}}{2} \|A^{\dagger}\|\|B^{\dagger}\|\|E\|
+\end{align*}
+
+\end{theorem}
+
+
+\begin{theorem}[Proposition 3.4 of \cite{dummy:perturbations}]
+\label{3_4}
+Let 
+\begin{align*}
+\Gamma_1(N, N') = \bigg(1 + \frac{1+\sqrt{5}}{2}\|L\| \|N_r^{\dagger}\|\bigg)\|{N_r'}^{\dagger}\|.
+\end{align*}
+Then, for $\epsilon'$ small enough we can write $PN = \begin{bmatrix} N_r \\ UN_r \end{bmatrix}$ and $PN' = \begin{bmatrix} N_r' \\ U'N_r' \end{bmatrix}$, where $P$ is a permutation matrix, $N_r$ and $N_r'$ have full row rank $r$, $N'_r = N_r(I + H')$ with $\|H'\|\le \Gamma_1(N, N') \epsilon'$ and $\|U - U'\| \le \Gamma_1(N, N')\epsilon'$.
+\end{theorem}
+
+\begin{proof}
+There exists a permutation matrix $P$ such that $PN = \begin{bmatrix}N_r \\ L \end{bmatrix}$ where $N_r$ has full  row rank $r$.
+That is $x^T N_r = 0$ only if $x = 0$, and each row of $L$ can be written as a linear combination of the rows of $N_r$: $L = UN_r$.
+Namely, $U = L N_r^{\dagger}$.
+Because $\|N_r - N_r'\| \le \epsilon'$ and $\|L - L'\| \le \epsilon'$, we know that 
+\begin{align*}
+\|U' - U\| = \|L'{N_r'}^{\dagger} - LN_r^{\dagger}\| \\
+\le \|(L' - L){N_r'}^{\dagger}\| + \| L({N_r'}^{\dagger} - N_r^{\dagger})\| \\
+\le \|{N_r'}^{\dagger}\|\epsilon' + \|L\| \|({N_r'}^{\dagger} - N_r^{\dagger})\| \\
+\le \|{N_r'}^{\dagger}\|\epsilon' + \frac{1+\sqrt{5}}{2}\|L\| \|{N_r'}^{\dagger}\|\|N_r^{\dagger}\|\epsilon' \\
+\le \bigg(1 + \frac{1+\sqrt{5}}{2}\|L\| \|N_r^{\dagger}\|\bigg)\|{N_r'}^{\dagger}\|\epsilon' \\
+\|U' - U\| \le \Gamma_1(N, N') \epsilon'. \\
+\end{align*}
+
+\end{proof}
+
+\begin{theorem}[Remarks before Proposition 2.3 of \cite{dummy:perturbations}]
+\label{remarks}
+There exist vectors $p > 0$ and $q$ such that $p^TB + q^TD = 0$.
+\end{theorem}
+\begin{proof}
+If $By \le 0$ and $Dy = 0$, then for small positive $r$ we have that $\hat x + ry$ (or something else if $A$ is vacuous) is also in $C$.
+This means that $b = (\hat x + ry) = B\hat x + rBy = b + rBy$ so that $By \le 0 $ and $Dy = 0$ so that $By = 0$.
+That is $By\le 0$ and  $Dy = 0$ has no solution.
+It follows from Tucker's theorem of the alternative that there exist vectors $p > 0$ and $q$ such that $p^TB + q^TD = 0$.
+\end{proof}
+
+
+\begin{theorem}[Lemma 3.5 of \cite{dummy:perturbations}]
+\label{3_5}
+Let $p$ and $q$ be as defined in \cref{remarks}, and let $\Gamma_2(p, q, N, N')$ independent of $B'$ and $D'$ be defined as 
+\begin{align*}
+\Gamma_2(p, q, N, N') = \frac {\mu_{0\to 2}} {\bar p_m} \|q\|\max\big\{\Gamma_1(N, N')\epsilon' + \frac{\|p\|}{\|q\|}, 1\big\}.
+\end{align*}
+Then, for small $\epsilon'$ we have that $\|B'x\|_{\infty} \le \Gamma_2(*)\{\|[B'x]^+\|_{\infty} + \|D'x\|_{\infty}\}$ for all $x$.
+\end{theorem}
+
+\begin{proof}
+We know by \cref{remarks} that there exists vectors $p > 0$ and $q$ such that $p^T B + q^T D = 0$.
+That is,
+\begin{align*}
+0 = \begin{bmatrix}p^T & q^T\end{bmatrix}N \\
+= \begin{bmatrix}p^TP^{-1} & q^TP^{-1}\end{bmatrix} \begin{bmatrix} I \\ U \end{bmatrix} N_r.
+\end{align*}
+Because $N_r$ has full row rank, we know that $p^TP^{-1} + q^TP^{-1}U = 0$.
+
+Define 
+\begin{align*}
+u^T & = & p^TP^{-1} \\
+v^T & = & q^T P^{-1} \\
+\bar v & = & v \\
+\bar u^T & = & -{\bar{v}}^TU' \\
+\bar p^T & = & \bar u ^T P \\
+\bar q^T & = & \bar v ^T P \\
+\end{align*}
+
+Then
+\begin{align*}
+\|\bar u - u \| = \|-({\bar{v}}^TU')^T - (p^TP^{-1})^T\|\\
+ = \|-U'^TP^{-T}q - P^{-T}p\|\\
+ = \|-U'^TP^{-T}q  + (q^TP^{-1}U)^T\|\\
+ \le \|U - U'\| \|P^{-T}q\|\\
+ \le \|q\| \Gamma_1(N, N') \epsilon'\\
+\end{align*}
+ by \cref{3_4}.
+
+
+%  P^{-T}p = -U^T P^{-T}q
+
+We have
+\begin{align*}
+0 = \begin{bmatrix}{\bar u}^T {\bar v}^T\end{bmatrix} \begin{bmatrix}I \\ U'\end{bmatrix}
+= \begin{bmatrix}{\bar p}^T {\bar q}^T\end{bmatrix} N' \\
+\end{align*}
+so that $\bar{p}^TB' + \bar{q}^T D'  = 0$ with $\bar p > 0$ for small $\epsilon'$.
+
+We know that
+\begin{align*}
+\bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{\bar p} \\ {\bar q}\end{bmatrix} \bigg\| =
+\bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{P^T(-\bar v^TU')^T} \\ {\bar P^T\bar v}\end{bmatrix} \bigg\| \\
+= \bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{-P^TU'^Tv} \\ {\bar P^TP^{-T}q}\end{bmatrix} \bigg\| \\
+= \bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{-P^T(U' - U + U)^TP^{-T}q} \\ {q}\end{bmatrix} \bigg\| \\
+= \bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{-P^T(U' - U)^T P^{-T}q -P^T U^T P^{-T}q} \\ {q}\end{bmatrix} \bigg\| \\
+= \bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{-P^T(U' - U)^T P^{-T}q +P^T P^{-T}p} \\ {q}\end{bmatrix} \bigg\| \\
+= \bigg\|\begin{bmatrix}{ p} \\ { q}\end{bmatrix} - \begin{bmatrix}{-P^T(U' - U)^T P^{-T}q + p} \\ {q}\end{bmatrix} \bigg\| \\
+= \bigg\|\begin{bmatrix}{P^T(U' - U)^T P^{-T}q} \\ 0 \end{bmatrix} \bigg\| \\
+= \bigg\|P^T(U' - U)^T P^{-T}q \bigg\| \le \|U' - U\|\|q\| \le \|q\|\Gamma_1(N, N')\epsilon'\\
+\end{align*}
+
+Let ${B_i'}^T$ and ${D_i'}^T$ denote the rows of $B'$ and $D'$.
+For a given $x$, let $M = \argmax_{i}{B'_i}^Tx$ and $m = \argmin_{i}{B'_i}^Tx$.
+Then either $\|B'x\|_{\infty} = {B'_M}^T = \|(B'x)^+\|_{\infty}$ or $\|B'x\|_{\infty} = -{B'_m}^Tx$.
+The proof is complete in the first case, so suppose the latter.
+In this case, we have 
+
+\begin{align*}
+0 = \bar p^TB' + \bar q^TD' \\
+0 = \bar p^TB'x + \bar q^TD'x \\
+0 = \sum_{i}\bar p_i {B'_i}^Tx + \sum_j\bar q_j{D'_j}^Tx \\
+-p_m{B'_m}^Tx = \sum_{i\ne m}\bar p_i {B'_i}^Tx + \sum_j\bar q_j{D'_j}^Tx \\
+\|B'x\|_{\infty} = -{B'_m}^Tx = \sum_{i\ne m} \frac{\bar p_i}{\bar p_m}{B'_i}^Tx + \sum_{j} \frac{\bar q_j}{\bar p_m}{D'_j}^Tx \\
+\le \sum_{i\ne m} \frac{\bar p_i}{\bar p_m}({B'_M}^Tx)^+ + \|D'x\|_{\infty}\sum_{j} \frac{\bar q_j}{\bar p_m} \\
+\le \|({B'}^Tx)^+\|_{\infty} \sum_{i\ne m} \frac{\bar p_i}{\bar p_m} + \|D'x\|_{\infty}\sum_{j} \frac{\bar q_j}{\bar p_m} \\
+\le \max\big\{\sum_{i\ne m} \frac{\bar p_i}{\bar p_m}, \sum_{j} \frac{\bar q_j}{\bar p_m} \big\}\bigg(\|({B'}^Tx)^+\|_{\infty} + \|D'x\|_{\infty}\bigg) \\
+\le \frac 1 {\bar p_m} \max\big\{\|\bar p\|_0, \|\bar q\|_0\big\}\bigg(\|({B'}^Tx)^+\|_{\infty} + \|D'x\|_{\infty}\bigg) \\
+\le \frac 1 {\bar p_m} \max\big\{\|\bar p - p\|_0 + \|p\|_0, \|q\|_0\big\}\bigg(\|({B'}^Tx)^+\|_{\infty} + \|D'x\|_{\infty}\bigg) \\
+\le \frac {\mu_{0\to 2}} {\bar p_m} \max\big\{\|\bar p - p\| + \|p\|, \|q\|\big\}\bigg(\|({B'}^Tx)^+\|_{\infty} + \|D'x\|_{\infty}\bigg) \\
+\le \frac {\mu_{0\to 2}} {\bar p_m} \max\big\{\|q\|\Gamma_1(N, N')\epsilon' + \|p\|, \|q\|\big\}\bigg(\|({B'}^Tx)^+\|_{\infty} + \|D'x\|_{\infty}\bigg) \\
+\le \frac {\mu_{0\to 2}} {\bar p_m} \|q\|\max\big\{\Gamma_1(N, N')\epsilon' + \frac{\|p\|}{\|q\|}, 1\big\}\bigg(\|({B'}^Tx)^+\|_{\infty} + \|D'x\|_{\infty}\bigg) \\
+\end{align*}
+
+
+
+\end{proof}
+
+\begin{theorem}[Lemma 4.1 of \cite{dummy:perturbations}]
+\label{4_1}
+Define $\hat {f_r} = P_r \begin{bmatrix}b \\ d \end{bmatrix}_r $. 
+Let $h_i$ be the components of $h$ and define
+\begin{align*}
+\Gamma_3(A, N_r, h) = \frac{1}{2\|A\|\|N_r^{\dagger}\|}\frac{\max_i h_i}{\min_ih_i} \\
+\delta = \frac{\max_i h_i}{2\|A\|\|N_r^{\dagger}\|}
+\end{align*}
+
+Then the system $Ax \le a''$ and $N_rx = f_r$ is simultaneously solvable whenever
+$\|f_r - \hat{f_r}\| \le \delta$, $\|(a - a'')^+\|\le \delta$, and $\delta \le \Gamma_3(A, N_r, h) \min_{i} h_i$.
+\end{theorem}
+
+\begin{proof}
+First note that $A$ is not empty, otherwise there would be nothing to prove.
+Let $\hat x $ be such that $A\hat x \le a - h$ and $N_r \hat x = \hat f_r$.
+Define $u = \hat x + N_r^{\dagger}(f_r - \hat f_r)$.
+It follows that $\|u - \hat x\| \le \|N_r^{\dagger}\|\delta$.
+Since $N_r$ has full row rank, it maps onto its column space, and hence it follows easily that
+$N_r u = f_r$.
+Thus, $Au - a'' = A\hat x - a + A(u - \hat x) + a - a'' \le -h + A(u - \hat x) + (a - a'')^+$.
+
+
+%It is clear that for some $\Gamma_3(A, N_r, h)$ and for $\delta \le \Gamma_3(A, N_r, h) \min_i h_i$ this vector on the right will be negative and, in fact, less than or equal to $-\frac 1 2 h$.
+The vector on the right will be less than or equal to $-\frac 1 2 h$ because
+
+% We need
+% \begin{align*}
+% -h + A(u - \hat x) + (a - a'')^+ \le -\frac 1 2 h \\
+% \delta \le\Gamma_3(*) \min_i h_i \\
+% \end{align*}
+% To acheive this, we let
+\begin{align*}
+\delta = \frac{\max_i h_i}{2\|A\|\|N_r^{\dagger}\|} \\
+\delta e \le \frac h {2\|A\|\|N_r^{\dagger}\|} \\
+-h + A(u - \hat x) + (a - a'')^+ \le -h + \|A\|\|N_r^{\dagger}\|\delta \le -\frac h 2 \\
+\end{align*}
+Finally,
+\begin{align*}
+\Gamma_3(A, N_r, h) = \frac{1}{2\|A\|\|N_r^{\dagger}\|}\frac{\max_i h_i}{\min_ih_i} \\
+\Longrightarrow \delta = \frac{\max_i h_i}{2\|A\|\|N_r^{\dagger}\|} \le \Gamma_3(A, N_r, h)\min_ih_i \\
+\end{align*}
+
+Thus, $u$ solves $A u \le a'$ and $N_ru = f_r$ as required.
+
+\end{proof}
+
+
+
+\begin{theorem}[Theorem 4.2 of \cite{dummy:perturbations}]
+\label{4_2}
+Let
+\begin{align*}
+\Gamma_4(p, q, N, N') =  \Gamma_0(N, N')\frac{2 + 3\|s\| + 2\Gamma_2(p, q, N, N')}{1-2\Gamma_0(N, N')\epsilon'}
+\end{align*}
+There exist positive constants $\Gamma_4(*)$ and $\epsilon_0$ depending on $C$ such that to every $s \in C$ satisfying $\epsilon'(1 + \|s\|) \le \epsilon_0$ there corresponds an $s'$ in $C'$ satisfying 
+$\|s - s'\|\le \Gamma_4(*) \epsilon'(1 + \|s\|)$.
+\end{theorem}
+
+\begin{proof}
+Because $s \in C$, we know that $As \le a$, $Bs = b$, $Ds = d$.
+Because $C'$ is not empty, we know that there is an $\bar s  \in C'$ satisfying $A'\bar s \le a', B'\bar s \le b', D\bar s = d'$.
+Defining $\bar b = B'\bar s \le b'$, we have by using \cref{3_5} that
+
+\begin{align*}
+\|\bar b - B's\| = \-|B'(\bar s - s)\| \le \Gamma_2(p, q, N, N') \|[B'(\bar s - s)]^+\| + \Gamma_2(p, q, N, N') \|D'(\bar s - s)\| \\
+\le \Gamma_2(p, q, N, N') \|[\bar b - Bs + Bs - B's]^+\| + \Gamma_2(p, q, N, N') \|d' - Ds + Ds - D's\| \\
+\le \Gamma_2(p, q, N, N')\|[\bar b - b ]^+\| + \Gamma_2(p, q, N, N') \|s\|\epsilon' + \Gamma_2(p, q, N, N') \epsilon' + \Gamma_2(p, q, N, N') \epsilon' \|s\| \\
+\le \Gamma_2(p, q, N, N') \|[\bar b - b ]^+\| + \Gamma_2(p, q, N, N') \epsilon' + 2\Gamma_2(p, q, N, N')\epsilon'\|s\| \\
+\le 2 \Gamma_2(p, q, N, N') \epsilon'(1 + \|s\|) \\
+\|\bar b - b\|\le 2\Gamma_2(p, q, N, N') \epsilon'(1 + \|s\|) + \epsilon' \|s\| \\
+\end{align*}
+
+Define $x_1 = s$. Then $x_1$ solves 
+\begin{align*}
+Ax_1 \le a \\
+N_r x_1 = f_r = P\begin{bmatrix} b \\ d \end{bmatrix}
+\end{align*}
+
+Define $x_{n+1}$ to solve
+\begin{align*}
+A x_{n+1} \le a' + (A - A') x_n \\
+N_r x_{n+1} = \bar {f_r} + (N_r - N_r')x_{n} \\
+\end{align*}
+where
+$\bar {f_r} = P\begin{bmatrix} b \\ d \end{bmatrix}_r =  N'_r\bar s$.
+
+By \cref{4_1} this is solvable if both
+\begin{align*}
+\|[a - a' - (A - A')x_n]^+\| \le \Gamma_3(A, N_r, h) \min_i h_i \\
+\|\bar {f_r} + (N_r - N_r')x_n - \hat{f_r} \| \le \Gamma_3(A, N_r, h) \min_i h_i \\
+\end{align*}
+
+We know that $\|[a - a' - (A - A')x_n]^+\|$ is bounded by $\epsilon'(1 + \|x_n\|)$ and
+\begin{align*}
+\epsilon'\|x_n\| + \|\bar{f_r} - \hat{f_r}\| \le \epsilon'\|x_n\| + \bigg\| \begin{bmatrix} \bar b \\ d' \end{bmatrix} - \begin{bmatrix} b \\ d \end{bmatrix} \bigg\| \\
+\le \epsilon'\|x_n\| + \epsilon' + \|\bar b - b \| \\
+\le \epsilon'\|x_n\| + \epsilon' + 2\Gamma_2(p, q, N, N') \epsilon'(1 + \|s\|) + \epsilon'\|s\| \\
+\end{align*}
+
+Thus, this will have a solution for a suitably small $\epsilon'$ with a uniform bound on $\|x_n\|$.
+By \cref{hoffman}, there is a constant $\Gamma_0(N, N')$ depending only on $A$, $B$, and $D$ such that we can find $x_2$ whose distance from $x_1$ is given by
+\begin{align*}
+\|x_2 - x_1\| \le \Gamma_0(N, N') \|[Ax_1 - a' - (A - A')s]^+\| + \Gamma_0(N, N') \|N_rx_1 - \bar{f_r} - (N_r - N_r')s\|.
+\end{align*}
+
+Combining
+\begin{align*}
+\|[Ax_1 - a' - (A - A')s]^+\| \le \|[a - a' - (A - A')s]^+\| \le \epsilon'(1 + \|s\|) \\
+\|N_rx_1 - \bar f_r - (N_r - N'_r)s\| =\|\hat f_r - \bar f_r - (N_r - N'_r)s\| \le \epsilon'\|s\|+\epsilon' + 2\Gamma_2(p, q, N, N')(1 +\|s\|) + \epsilon'\|s\|
+\end{align*}
+
+We see that
+\begin{align*}
+\|x_2 - x_1\| \le \Gamma_0(N, N') \epsilon'[2 + 3\|s\| + 2\Gamma_2(p, q, N, N')(1 + \|\bar s\|)] \\
+\|x_2\| \le \|s\| + \Gamma_0(N, N') \epsilon'[2 + 3\|s\| + 2\Gamma_2(p, q, N, N')(1 + \|s\|)].
+\end{align*}
+
+Continuing to use Hoffman's theorem, we see that 
+
+\begin{align*}
+\|x_{k+1} - x_{k}\| \le \Gamma_0(N, N')\|[Ax_k - a' - (A - A')x_k]^+\| +  \Gamma_0(N, N')\|N_rx_k - \bar f_r - (N_r - N'_r)x_k\| \\
+\Gamma_0(N, N')\|[Ax_k - a' - (A - A')x_k]^+\| \le c_0\|(A - A')(x_{k-1} - x_k)\| \le \Gamma_0(N, N')\epsilon'\|x_{k-1} - x_k\| \\
+\Gamma_0(N, N')\|N_rx_k - \bar f_r - (N_r - N'_r)x_k\| \le \Gamma_0(N, N')\|(N_r - N'_r)(x_{k-1}  - x_k)\| \le \Gamma_0(N, N')\epsilon'\|x_{k-1} - x_k\|
+\end{align*}
+and therefore, for $k \ge 2$:
+\begin{align*}
+\|x_{k+1} - x_k\| \le 2\Gamma_0(N, N') \epsilon'\|x_k - x_{k-1}\|.
+\end{align*}
+
+By induction we see that
+\begin{align*}
+\|x_{n+1}\| \le \|s\| + \|x_2 - x_1\|\frac{1 - (2\Gamma_0(N, N')\epsilon')^n}{1 - 2\Gamma_0(N, N') \epsilon'} \\
+\le \|s\| + \Gamma_0(N, N')\epsilon'\frac{2 + 3\|s\| + 2\Gamma_2(p, q, N, N')(1 + \|\bar s\|)}{1 - 2c_0\epsilon'}
+\end{align*}
+
+Because $\{x_n\}$ is Cauchy, it must converge to a point $s'$ satisfying
+\begin{align*}
+\|s' - s\| = \|s' - x_1\| \le \frac{1}{1 - 2\Gamma_0(N, N')\epsilon'}\|x_2 - x_1\| \le \epsilon'\Gamma_0(N, N')\frac{2 + 3\|s\| + 2\Gamma_2(p, q, N, N')(1 + \|s\|)}{1-2\Gamma_0(N, N')\epsilon'} \\
+= \epsilon'\Gamma_0(N, N')\frac{\left(3 + 2\Gamma_2(p, q, N, N')\right)(1 + \|s\|)}{1-2\Gamma_0(N, N')\epsilon'} \\
+\end{align*}
+
+We know that $s'$ solves $As' \le a' + (A - A')s'$, $N_rs' = \bar{f_r} + (N_r - N_r')s'$ so that
+$A's' \le a'$ and $N_r's' = \bar {f_r}$.
+
+
+We see that $s'$ solves 
+\begin{align*}
+As' \le a' + (A - A')s' \Longleftrightarrow A's'\le a'\\
+N_rs' = \bar f_r + (N_r - N'_r)s' \Longleftrightarrow N'_rs' = \bar f_r
+\end{align*}
+so that $s' \in S'$.
+
+\end{proof}
+
+\begin{theorem}[Proposition 3.7 of \cite{dummy:continuity}]
+\label{3_7}
+There exist positive constants $c$ and  $\epsilon_0$ depending on $C'$ such that:
+to each $x \in C'$ satisyfing $\epsilon(1 + \|x\|) \le \epsilon_0$ there corresponds an $x' \in C'$ satisfying $\|x - x'\| \le c\epsilon(1 + \|x\|)$ and
+to each $x' \in C'$ there corresponds an $x \in C$ satisfying $\|x - x'\| \le c \epsilon (1 + \|x'\|)$.
+\end{theorem}
+
+\begin{proof}
+Combine \cref{4_2} and \cref{hoffman}.
+\end{proof}
+
+\begin{theorem}[Theorem 2.2 of \cite{dummy:continuity}]
+\label{2_2}
+Suppose that for each $r > 0$ the is a constant $c_r$ such that to each 
+$x$ in $C$ with $\|x\| \le r$ there corresponds an $x'$ in $C'$ with $\|x-x'\| \le c_r \epsilon$ and 
+to each $y' \in C'$ with $\|y'\| \le r$ there corresponds a $y\in C$ with $\|y - y'\| \le c_r \epsilon$.
+Then there exists a constant $c$ such that $\xo'$ satisifies $\|\bar x - \bar x '\|\le c \sqrt{\epsilon}$ as $\epsilon \to 0$.
+\end{theorem}
+
+\begin{proof}
+For $\bar x'$ let $u' \in C'$ satisfy $\|u - \bar x\| \le c_{r_0} \epsilon$ for $\epsilon > 0$ where $r_0 = \|\bar x\|$.
+Since $\|\bar x \| \le \|u\| = \|\bar x + u - \bar x\| \le \|\bar x \| + c_{r_0} \epsilon \equiv r$, we know that there exist 
+$v \in C$ satisfying $\|\bar x' - v\| \le c_r \epsilon$.
+Because these are minimums over a convex set, we know that
+$\langle \xo', u - \xo'\rangle \ge 0$ and $\langle\xo, v-\xo\rangle \ge 0$ so that
+\begin{align*}
+0 \le \langle \xo' - \xo, \xo - \xo'\rangle + \langle \xo' - \xo, \xo'-v\rangle + \langle \xo', u - \xo + v - \xo'\rangle \\
+\Longrightarrow \|\xo ' - \xo \|^2 \le \|\xo' - \xo\|c_r \epsilon + r(2c_r\epsilon)
+\end{align*}
+
+\end{proof}
+
+
+\begin{theorem}[Corollary 3.9 of \cite{dummy:continuity}]
+\label{3_9}
+There exist positive constants $\epsilon_0$ and $c$ such that for all $\epsilon \le \epsilon_0$,  one has $\|\xo - \xo'\| \le c \sqrt{\epsilon}$.
+\end{theorem}
+
+\begin{proof}
+Combine \cref{3_7} and \cref{2_2}.
+\end{proof}

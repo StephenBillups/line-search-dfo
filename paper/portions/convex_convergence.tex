@@ -1,0 +1,277 @@
+
+
+\section{Convergence Analysis}
+
+Our convergence analysis follows closely that of \cite{Conejo:2013:GCT:2620806.2621814}.
+
+
+In all cases, we assume the following about the problem:
+\subsection{Assumptions}
+\paragraph{H1}
+The function $f$ is differentiable and its gradient $\grad$ is Lipschitz continuous with constant $L > 0$ in $ \Omega $.
+\paragraph{H2}
+The function $f$ is bounded below in $ \Omega $.
+\paragraph{H3}
+The matrices $\hk$ are uniformly bounded, that is, there exists a constant $ \beta \ge 1 $ such that $\|\hk\| \le \beta - 1$ for all $k \ge 0$.
+
+\subsection{Requirements}
+
+The construction of each variant of our algorithm ensures that the following two criteria are also met.
+\paragraph{Accuracy}
+The accuracy condition \ref{accuracy} is satisfied:
+there exists a constant $\kappa_{g} > 0$ such that $ \| \gk - \grad(\iteratek) \| \le \kappa_{g} \dk $ for $k \in \ints $.
+
+We have shown that this is satisfied for ellipsoidal trust regions in \cref{ellipsoidal_lambda}.
+These two conditions are required by \cite{Conejo:2013:GCT:2620806.2621814} to prove convergence in the case with linear constraints.
+
+\paragraph{Efficiency}
+
+The efficiency condition \ref{efficiency} is satisfied:
+\begin{equation}
+\modelk(\iteratek) - \modelk(\iteratek + \trialk) \ge \kappa_f \chi_k \min\{ \frac{\chi_k}{1+\|\nabla^2 \modelk(\iteratek)\|}, \Delta_k, 1 \}
+\end{equation}
+
+We know that this is satisfied by the Generalized Cauchy Point.
+
+
+
+\subsection{Proof}
+
+
+
+We will define:
+
+%\rk = \frac{f(\iteratek) - f(\iteratek + \trialk)}{\modelk(\iteratek) - \modelk(\iteratek + \trialk)} \\
+%\modelk(\iteratek + \trialk) = f(\iteratek) + (\gk)^T \trialk + \frac 1 2 \trialk^T \hk \trialk \\
+%\chik = \|P_{\Omega}(\iteratek - \gk) - \iteratek \| \\
+
+\begin{align*}
+S = \{k \in \ints | \rk > \eta \} \\
+\bar{S} = \{k \in \ints | \rk \ge \eta_1 \} \\
+c = \frac{L + \kappa_{g} + \frac {\beta} 2}{\kappa_f} \\
+c_0 = L + \kappa_{g} + \frac {\beta} 2 \\
+\mathcal K = \big \{ k \in \ints | \dk \le \min \{ \frac {\chik}{\beta}, \frac{1-\eta_1}{\chik}c, \oalpha \chik, 1 \} \big \}
+\end{align*}
+
+
+
+\subsubsection{$\mathcal K \subset \bar{S}$}
+\begin{theorem}
+Suppose that Hypothesis H1 and H2 hold. If $k \in \mathcal K$, then $k \in \bar{S}$.
+\end{theorem}
+ 
+\begin{proof}
+
+By the Mean Value Theorem, there exists a $t_k \in (0, 1)$ such that
+\begin{align*}
+f(\iteratek + \trialk) = f(\iteratek) + \grad(\iteratek + t_k\trialk)^T\trialk
+\end{align*}
+
+By H1, H3, H4,
+\begin{align*}
+|f(\iteratek) - f(\iteratek + \trialk) - (\modelk(\iteratek) - \modelk(\iteratek + \trialk)| \\
+= |-(\grad(\iteratek + t_k\trialk) - \gk)^T\trialk + \frac 1 2 (\trialk)^T \hk \trialk| \\
+\le (\| \grad(\iteratek + t_k\trialk) - \grad(\iteratek) \| + \| \grad(\iteratek)-\gk \|) \|\trialk\| + \frac 1 2 \|\trialk\|^2\|\hk\| \\
+\le (t_k L \|\trialk\| + \kappa_{g}\dk) \|\trialk\| + \frac 1 2 \beta \|\trialk\|^2
+\end{align*}
+
+Since $\| \trialk \| \le \dk$ and $t_k \in (0, 1)$ we have that
+\begin{align}
+|f(\iteratek) - f(\iteratek + \trialk) - (\modelk(\iteratek) + \modelk(\iteratek + \trialk)| \le c_0 \dk^2
+\end{align}
+
+By the definition of $\mathcal K$, for every $k \in \mathcal K$ we have that $\dk \le \oalpha \chik$ and consequently $\chik > 0$.
+By the efficiency condition, this means that $\modelk(\iteratek) - \modelk(\iteratek + \trialk) \ne 0$.
+Then,
+\begin{align*}
+|\rk - 1| = \bigg |\frac{f(\iteratek) - f(\iteratek + \trialk) - (\modelk(\iteratek) - \modelk(\iteratek + \trialk)}{\modelk(\iteratek) - \modelk(\iteratek + \trialk)} \bigg | \\
+\le \frac {c_0 \dk^2} {\kappa_f \chik \min\{\frac{\chik}{\beta}, \dk, 1\}} \\
+= \frac {c \dk^2} {\chik \min\{\frac{\chik}{\beta}, \dk, 1\}}
+\end{align*}
+
+We also know that 
+\begin{align*}
+\dk = \min\{\frac {\chik} {\beta}, \dk, 1 \} \\
+\frac {c \dk}{\chik} \le 1 - \eta_1
+\end{align*}
+so that
+\begin{align*}
+|\rk - 1| \le 1 - \eta_1 \\
+\Longrightarrow \rk \ge \eta_1
+\end{align*}
+so that $k \in \bar{S}$.
+
+
+\end{proof}
+
+
+
+\subsubsection{$\Delta_k \to 0$}
+\begin{theorem}
+Suppose Hypothesis H2, H3. Then the sequence $(\dk)$ converges to zero.
+\end{theorem}
+ 
+\begin{proof}
+
+Suppose that $\bar{S}$ is finite. Then there exists $k_0 \in \ints$ such that for all $k \ge  k_0$, $\dkpo \le \omegadec \dk$.
+Thus, $(\dk)$ converges to zero.
+From now on $\bar{S}$ is infinite.
+For any $k \in \bar{S}$, we know $\dk \le \oalpha \chik$ using $H3$ we have
+\begin{align*}
+f(\iteratek) -  f(\xkpo) \ge \eta_1 \big (\modelk(\iteratek) - \modelk(\iteratek + \trialk)\big ) \ge \eta_1 \kappa_f \chik \min\{\frac{\chik}{\beta}, \dk, 1\}\\
+f(\iteratek) - f(\xkpo) \ge \eta_1\kappa_f\frac{\dk}{\oalpha}\min\{\frac{\dk}{\oalpha \beta}, \dk, 1\}
+\end{align*}
+Because $f(\iteratek)$ is nonincreasing, the left hand side goes to zero.
+Thus,
+\begin{align}
+\lim_{k \in \bar{S}} \dk = 0
+\end{align}
+
+
+Consider the set
+$\mathcal U = \{ k \in \ints | k \not \in \bar S \}$.
+If $\mathcal U$ is finite, then $\lim_{k\to\infty}\dk = 0$.
+Otherwise, consider $k \in \mathcal U$ and define $\l_k$ to be the last index in $\bar S$ before $k$.
+Then $l_k$ is well-defined for all large $k$  and $\dk \le \omegainc \Delta_{l_k}$ which implies that
+\begin{align}
+\lim_{k \in \mathcal U } \dk \le \omegainc \lim_{k \in \mathcal U} \Delta_{l_k} = \omegainc \lim_{l_k \in \bar{S}} \Delta_{l_k}
+\end{align}
+
+so that $\lim_{k \in \mathcal U} \dk = 0$.
+
+\end{proof}
+
+
+
+
+\subsubsection{$\chik \to 0$ Part 1}
+\begin{theorem}
+Suppose that Hypothesis H1, H4. Then $\liminf_{k\to\infty} \chik = 0$.
+\end{theorem}
+ 
+\begin{proof}
+Suppose for a contradiction that there exists a constants $\epsilon > 0$ and an integer $K > 0$ such that for $\chik \ge \epsilon$ for each $k \ge K$.
+Take $ \tilde \Delta = \min \{\frac{\epsilon}{\beta}, \frac{(1 - \eta_1)c}{\epsilon}, \oalpha \epsilon, 1\}$.
+Consider $k \ge K$.
+If $\dk \le \tilde \Delta$, then $k \in \mathcal K$.
+Then $k \in \bar S$ and thus $\dkpo \ge \dk$.
+Therefore, the trust region radius can only decrease if $\Delta > \tilde \Delta$, and in this case $\dkpo = \omegadec\dk > \omegadec \tilde \Delta$.
+Therefore, one can see that for all $k \ge K$
+\begin{align}
+\dk \ge \min\{\omegadec \tilde \Delta, \dk \}
+\end{align}
+which is a contradiction.
+\end{proof}
+
+
+
+\subsubsection{$\chik \to 0$ Part 2}
+\begin{theorem}
+Suppose that H1 to H4 and $\eta > 0$. Then $\lim_{k\to\infty}\chik=0$.
+\end{theorem}
+
+\begin{proof}
+Suppose for a contradiction that for some $\epsilon > 0$ the set $\int ' = \{k \in \ints | \chik \ge \epsilon \}$
+is finite.
+
+Because $\lim_{k\to\infty}\Delta_k\to 0$, there exists a $k_0 \in \ints$ such that for all $k \ge k_0$,
+
+\begin{align*}
+\dk \le \min\{\frac{\epsilon}{\beta}, \frac{(1-\eta_1)\epsilon}{c}, \oalpha\chik, 1\}.
+\end{align*}
+
+Then if $k \in \ints '$ with $k \ge k_0$:
+
+\begin{align*}
+\dk \le \min\{\frac{\chik}{\beta}, \frac{(1-\eta_1)\chik}{c}, \oalpha\chik, 1\}
+\end{align*}
+
+and therefore $k \in \bar S \subset S$.
+
+Given $k \in \ints'$ with $k\ge k_0$, consider $l_k$ the first index such that $l_k > k$ and $\chi_{l_k} \le \frac{\epsilon} 2$.
+The existence of $l_k$ is ensured by lemma 3.3.
+This means that $\chik - \chi_{l_k} \ge \frac {\epsilon} 2 $.
+Using the definition of $\chik$, the triangle inequality and the contraction property of projections, we have that
+
+\begin{align*}
+\frac{\epsilon}{2} \le \|P_{\Omega}(\iteratek - \gk) - \iteratek\| - \|P_{\Omega}(x^{(l_k)} - g^{(l_k)}) - x^{(l_k)}\| \\
+\le \|P_{\Omega}(\iteratek - \gk) - \iteratek - P_{\Omega}(x^{(l_k)} - g^{(l_k)}) + x^{(l_k)}\| \\
+\le 2\|\iteratek - x^{(l_k)}\| + \|\gk - g^{(l_k)}\| \\
+=   2\|\iteratek - x^{(l_k)}\| + \|\gk - \grad(\iteratek) + \grad(\iteratek) - \grad(x^{(l_k)}) + \grad(x^{(l_k)}) - g^{(l_k)}\| \\
+\le 2\|\iteratek - x^{(l_k)}\| + \|\gk - \grad(\iteratek)\| + \|\grad(\iteratek) - \grad(x^{(l_k)})\| + \|\grad(x^{(l_k)}) - g^{(l_k)}\|.
+\end{align*}
+
+So that
+\begin{align}
+\frac{\epsilon} 2 \le (2 + L) \|\iteratek - x^{(l_k)}\| + \kappa_{g}(\dk + \Delta_{l_k}).
+\end{align}
+
+Consider $C_k = \{i \in S | k \le i < l_k\}$.
+Note that because $k \in S$, so $C_k \ne \varnothing $.
+For each $i \in C_k$, using the fact that $i \in S$, and H3, we conclude that 
+
+\begin{align}
+f(x^{(i)}) - f(x^{(i+1)}) \ge \eta\big ( \modelk(x^{(i)}) - \modelk(x^{(i)} + s^{(i)}) \big ) \ge \eta \kappa_f \chi_i \min\{\frac{\chi_{i}}{\beta}, \Delta_i, 1\} 
+\end{align}
+
+By the definition of $l_k$, we have that $\chi_i > \frac{\epsilon}{2}$ for all $i \in C_k$.
+As $i \ge k$, $\Delta_i \le \frac{\epsilon}{\beta}$ and $\Delta_i \le 1$.
+Therefore,
+\begin{align}
+\frac{\Delta_i}{2} \le \frac{\epsilon}{2\beta} \le \frac{\pi_i}{\beta}.
+\end{align}
+
+It follows that
+\begin{align}
+f(x^{(i)}) - f(x^{(i+1)}) > \frac{\eta \kappa_f \epsilon \Delta_i}{4}
+\end{align}
+
+and hence
+\begin{align}
+\Delta_i < \frac{4}{\eta \kappa_f \epsilon} \big ( f(x^{(i)}) - f(x^{(i+1)})\big ).
+\end{align}
+
+Meanwhile,
+\begin{align}
+\|x^{(i)} - x^{(l_k)}\| \le \sum_{i \in C_k}\|x^{(i)} - x^{(i+1)}\| \le \sum_{i \in C_k} \Delta_i
+\end{align}
+
+so that
+
+\begin{align}
+\|x^{(i)} - x^{(l_k)}\| < \frac{4}{\eta \kappa_f \epsilon} \big ( f(x^{(i)}) - f(x^{(i+1)})\big ).
+\end{align}
+
+We also know that $(f(\iteratek))$ is bounded below, and since it is nonincreasing, $f(\iteratek)  - f(x^{(l_k)}) \to 0$.
+Therefore $(\|\iteratek - x^{(l_k)}\|)_{k \in \ints '}$ converges to zero.
+
+\end{proof}
+
+\subsubsection{Convergence}
+
+\begin{theorem}
+Suppose that H1 to H4 hold.
+
+If $\eta = 0$, then
+\begin{align}
+\liminf_{k\to\infty} \|P_{\Omega}(\iteratek - \grad(\iteratek)) - \iteratek \| = 0.
+\end{align}
+
+If $\eta > 0$, then
+\begin{align}
+\lim_{k\to\infty} \|P_{\Omega}(\iteratek - \grad(\iteratek)) - \iteratek \| = 0.
+\end{align}
+
+\end{theorem}
+
+\begin{proof}
+By the triangle inequality, the contraction property of projections and H4, we have that
+
+\begin{align*}
+\|P_{\Omega}(\iteratek - \grad(\iteratek)) - \iteratek \| = \|P_{\Omega}(\iteratek - \grad(\iteratek)) - P_{\Omega}(\iteratek - \gk) + P_{\Omega}(\iteratek - \gk) - \iteratek\| \\
+\le \|P_{\Omega}(\iteratek - \grad(\iteratek)) - P_{\Omega}(\iteratek - \gk)\| + \|P_{\Omega}(\iteratek - \gk) - \iteratek\| \\
+\le \|\grad(\iteratek) - \gk\| + \|P_{\Omega}(\iteratek - \gk) - \iteratek\| \\
+\le \kappa_{g} \Delta_k + \chik
+\end{align*}
+
+\end{proof}

@@ -4,8 +4,8 @@
 
 # 
 
-# for FILENAME in short_paper gc full_paper 
-for FILENAME in short_paper
+for FILENAME in short_paper fewer_points convex dissertation generalizations
+# for FILENAME in short_paper
 do
     rm -f $FILENAME.aux $FILENAME.log $FILENAME.blg $FILENAME.toc
     pdflatex $FILENAME.tex

@@ -21,6 +21,7 @@
 \usepackage[capitalise,nameinlink,noabbrev]{cleveref}
 \usepackage[normalem]{ulem}	% For color comments
 \usepackage{float}
+\usepackage{mathtools}
 \floatstyle{ruled}
 \newfloat{algorithm}{thp}{lop}
 \floatname{algorithm}{Algorithm}
@@ -70,8 +71,10 @@
 \newcommand{\iteratek}{{x}^{(k)}}
 \newcommand{\trialk}{{{s}^{(k)}}}
 \newcommand{\iteratekpone}{{x}^{(k+1)}}
-\newcommand{\innertrk}{{T^{(k)}}_{\text{in}}}
-\newcommand{\outertrk}{{T^{(k)}}_{\text{out}}}
+\newcommand{\outertrk}{{T_{\text{out}}^{(k)}}}
+\newcommand{\searchtrk}{{T_{\text{search}}^{(k)}}}
+\newcommand{\sampletrk}{{T_{\text{interp}}^{(k)}}}
+\newcommand{\innertrk}{\color{red} \text{Replace me} \color{black} }
 \newcommand{\feasible}{{F}}
 \newcommand{\feasiblek}{{F}^{(k)}}
 \newcommand{\ellipsek}{{E^{(k)}}}
@@ -89,6 +92,7 @@
 \newcommand{\sgck}{{{s}^{(k)}}_{GC}}
 \newcommand{\xj}{{{x}^{(k)}}_{j}}
 \newcommand{\sj}{{{s}^{(k)}}_{j}}
+\newcommand{\qk}{{Q^{(k)}}}
 
 
 \newcommand{\innerfritr}{D_{\text{in}}}
@@ -117,3 +121,16 @@
 
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
+
+
+% From find ellipse
+\newcommand{\xk}{{x^{(k)}}}
+\newcommand{\ak}{{A^{(k)}}}
+\newcommand{\bk}{{b^{(k)}}}
+\newcommand{\pik}{{\pi^{(k)}}}
+
+
+\newcommand{\xo}{{{\bar x}}}
+
+
+

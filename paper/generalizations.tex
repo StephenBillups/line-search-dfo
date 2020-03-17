@@ -1,6 +1,6 @@
 \documentclass{article}
 
-\input{portions/commands}
+\input{commands}
 
 %=========================================
 
@@ -26,6 +26,8 @@ We propose a model-based trust-region algorithm for constrained optimization pro
 In each iteration, the objective function is approximated by an interpolation model, which is then minimized over a trust region.
 To ensure feasibility of all sample points and iterates, we consider two trust region strategies in which the trust regions are contained in the feasible region.
 Computational results are presented on a suite of test problems.
+% We explore several choices of trust region and compare them with different functions, and types of constraints.
+% We work within the pyomo framework and test using ipopt optimization routines. We provide global convergence analysis thoughts, some numerical results, and suggest how we will extend this to include more general constraints.
 
 \end{abstract}
 
@@ -35,17 +37,15 @@ Computational results are presented on a suite of test problems.
 
 \newpage
 
-\input{portions/introduction}
-
-\input{portions/shared}
+\input{shared}
 
 \newpage
 
-\input{portions/linear_results}
+\input{ending}
 
 \appendix
 
-\input{portions/table_of_notation}
+\input{table_of_notation}
 
 \bibliography{bibliography}
 \bibliographystyle{ieeetr}
