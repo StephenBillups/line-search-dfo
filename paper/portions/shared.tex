@@ -726,11 +726,18 @@ The following proof shows that such a feasible ellipse exists, and provides the 
 Given a polyhedron $P = \{x | Ax \le b \}$, where the rows of $A$ are linearly independent, and a point $\xk \in P$,
 there exists an ellipsoid $E = \{x | (x - c)^TQ(x - c) \le \frac 1 2 \epsilon \}$ within the polyhedron $E \subset P$,
 such that $(\xk - c)^TQ(\xk - c) \le \epsilon$.
+Furthermore, letting $\mathcal A(x) = \{1\le i\le n | A_ix = b_i\}$, $
+\alpha = \max_{x \in P, i \in \mathcal A(x)} -A_i\frac{A_{\mathcal A}^T(A_{\mathcal A}A_{\mathcal A}^T)^{-1} e}{\|A_{\mathcal A}^T(A_{\mathcal A}A_{\mathcal A}^T)^{-1} e\|}$ we have that
+
+\begin{align*}
+\sigma(Q) = \frac{\max\{1, \alpha^{-2}\}}{\min\{1, \alpha^{-2}\}}.
+\end{align*}
+
 \end{theorem}
 
 \begin{proof}
 Assume without loss of generality that $A$ and $b$ have been normalized so that $\|A_i\| = 1$.
-Let $\mathcal A$ be the set of active constraints at $\xk$: $\mathcal A = \{ i | A_ix = b_i\}$.
+Let $\mathcal A$ be the set of active constraints at $\xk$: $\mathcal A = \mathcal A(\xk) = \{ i | A_i\xk = b_i\}$.
 If $\mathcal A = \emptyset$, then we are free to select $c = \xk, Q = I$, and $ \epsilon $ sufficiently small.
 Otherwise, compute $u = -A_{\mathcal A}^T(A_{\mathcal A}A_{\mathcal A}^T)^{-1} e$, $\hat u = \frac {u} {\| u\|} $, $\alpha = -\max_{i \in \mathcal A} A_i \hat u$, and define the cones
 \begin{align}
@@ -817,7 +824,7 @@ E_2 = \bigg \{x \bigg | (x - \xk - \delta \hat u)^T\bigg(R^T\begin{bmatrix}
 for sufficiently small $\delta$, that can be scaled by $2$ to include $\xk$.
 Note that the condition number of this matrix is $\sigma(Q) = \frac{\max\{1, \alpha^{-2}\}}{\min\{1, \alpha^{-2}\}}$,
 as the condition number is not affected by rotations.
-The value of $\alpha$ only depends on the polyhedron, and is therefore bounded given a problem.
+% The value of $\alpha$ only depends on the polyhedron, and is therefore bounded given a problem.
 
 
 \end{proof}

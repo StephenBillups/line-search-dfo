@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 
 \input{portions/commands}
 
@@ -16,33 +16,73 @@
 \let\oldref\ref
 \renewcommand{\ref}[1]{(\oldref{#1})}
 
+\pagestyle{plain}
+
 \begin{document}
+    \pagenumbering{roman}
+\input{portions/titlepage}
 
-\maketitle
+\newpage
 
-\begin{abstract}
+\vspace{1in}
+    \setcounter{page}{2}
+
+\begin{center}
+This thesis for the Doctor of Philosophy degree by \\
+Stephan Patterson\\
+has been approved for the \\ 
+Applied Mathematics Program\\
+by\\
+\vspace{1in}
+Stephen Billups, Chair\\
+Steffen Borgwardt, Advisor\\
+Ethan Anderes\\
+Yaning Liu \\
+Burt Simon \\
+
+\vspace{.5in}
+
+\hfill Date: May 16, 2020
+\end{center}
+
+\newpage
+
+\noindent Hallock, Trever (Ph.D., Applied Mathematics)
+
+\noindent Derivative free optimization on thin constraints
+
+\noindent Thesis directed by Stephan Billups
+
+\begin{center}\large\textbf{ABSTRACT}\end{center}
+% \begin{abstract}
 
 We propose a model-based trust-region algorithm for constrained optimization problems with linear constraints in which derivatives of the objective function are not available and the objective function values outside the feasible region are not available.
 In each iteration, the objective function is approximated by an interpolation model, which is then minimized over a trust region.
 To ensure feasibility of all sample points and iterates, we consider two trust region strategies in which the trust regions are contained in the feasible region.
 Computational results are presented on a suite of test problems.
 
-\end{abstract}
+% \end{abstract}
 
 \newpage
 
 \tableofcontents
 
 \newpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\chapter{Introduction}
 
 \input{portions/introduction}
 
+\chapter{Linear}
 
 \input{portions/shared}
 
 \input{portions/linear_results}
 
 
+\chapter{Convex}
 
 \input{portions/convex_strategies}
 
@@ -50,6 +90,7 @@ Computational results are presented on a suite of test problems.
 
 \input{portions/copy_of_purtubations}
 
+\chapter{Fewer points}
 
 \input{portions/fewer_points_strategy}
 
