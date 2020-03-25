@@ -1,7 +1,133 @@
 
+\section{Algorithms}
 
 
-\section{Questions}
+\subsection{Using full models}
+I have implemented an algorithm that uses higher order models to approximate the constraints.
+
+In this algorithm, we add additional degrees of freedom to the constraints to cut off points that have been evaluated and are infeasible.
+The models are forced to be a given negative value at these points.
+
+One question for this method is how many constraints to model.
+
+
+I implemented Kriging, as this can use as many points as are available.
+However, this requires using some artificial value of the constraints at infeasible points.
+
+\subsection{Using linear models}
+
+Another method is to add additional linear constraints each time a new point is evaluated and infeasible.
+
+Each new linear constraint cuts off an infeasible point and stays atleast a fraction of the trust region away from that infeasible point.
+
+
+\includegraphics[width=300px]{images/pyomo_cut_solution.png}
+
+\subsubsection{formulation}
+
+The optimization program for finding this constraint is given by:
+
+A set of $u^i, 1 \le i \le n_{I}$ infeasible points.
+A set of $v^i, 1 \le i \le n_{F}$ feasible points.
+
+The current Lagrange polynomial $\frac 1 2 x^T Q x + b^Tx$.
+Require all infeasible point to be a distance at least $d$ from the feasible region.
+
+
+Find a set of planes $(n^i, b^i), 1 \le i \le n_{P}$.
+
+Require $n_P \ge n_I$.
+
+
+What we want big:
+\begin{align}
+\max_{x} & \frac 1 2 x^T Q x + b^Tx &\\
+ & {n^i}^T x \le b^i & \forall 1 \le i \le n_{P} \\
+ & {n^i}^T v_j \le b^i & \forall 1 \le i \le n_{P}, 1\le j\le  n_{F} \\
+ & {n^i}^T u_i \ge b^i + d & \forall 1 \le i \le n_{I} \\
+ & \| n^i \| = 1 & \forall 1 \le i \le n_{I} \\
+ & 0 \le x_i \le 1 & \forall 1 \le i \le n \\
+\end{align}
+
+
+A set of $v_i, 1 \le i \le n_{I}$ feasible points.
+
+
+
+
+\subsection{Using a sacred region}
+
+
+\begin{itemize}
+    \item Define a suitable ellipsoid to be an ellipsoid that satisfies the following conditions: \begin{itemize}
+        \item It can be scaled by a factor of 2 to include the current iterate.
+        \item It touches a boundary of the current trust region
+        \item It has bounded condition number (which happens because of one of the following)
+        \item One of the following two  \begin{itemize}
+            \item \begin{itemize}
+                \item It either touches a constraint
+                \item The center lies on $\hat u$
+                \item It has two singular values
+            \end{itemize}
+        \end{itemize}
+        \item It has condition number 1
+    \end{itemize}
+\end{itemize}
+
+
+
+\begin{algorithm}[H]
+    \caption{Construct next trust region}
+    \label{constrained_dfo}
+    \begin{itemize}
+        \item[\textbf{Step 0}] \textbf{(Initialization)} \\
+            Given the current \begin{itemize}
+                \item[] trust region $\dk$
+                \item[] ellipse $E_k$
+                \item[] sample points
+                \item[] model functions
+            \end{itemize}
+        
+        \item[\textbf{Step 1}] \textbf{(Check stopping criteria)} \\
+            Evaluate the next iterate \begin{itemize}
+                \item[] If $\rho_k < \gammasm$ then $\iteratekpone=\iteratek$ (reject) and $\Delta_{k+1} = \omegadec\Delta_{k}$
+                \item[] Otherwise, get temp cone
+                \item[] if the temp cone hits a model of the constraint, decrease the next trust region get temp ellipsoid    
+                \item[] reshape ellipse
+            \end{itemize}
+        
+        \item[\textbf{Step 2}] \textbf{(Construct sample set in temp ellipsoid)} \\
+            If a point in the temp ellipse is infeasible, then reject and decrease trust region
+            % \item[] This can also be $\trialk = \min_{s \in \outertrk \cap \feasiblek} \modelk(\iteratek + \trialk)$ depending on the choice made in \cref{which_trust_region}.
+            
+        \item[\textbf{Step 3}] \textbf{(Move to temp ellipse)} \\
+            Evaluate $f(\iteratek + \trialk)$ and evaluate $\rho_k$ as in \cref{rho} \begin{itemize}
+                \item[] $\iteratekpone=\iteratek+\trialk$ (accept), $\Delta_{k+1} = \omegadec\Delta_{k}$
+                \item[] $\Delta_{k+1} = $ temp radius
+                % and either increase the radius or decrease if $\nabla \modelk(\iteratek)$ is small
+            \end{itemize}
+            
+            
+        $k \gets k+1$ and go to Step 1.
+    \end{itemize}
+\end{algorithm}
+
+
+
+
+
+
+Another approach is to ensure that we will always have a large enough feasible region within the current trust region.
+This is the approach that we currently have a convergence proof for.
+
+
+\begin{align*}
+\max_{t \in \mathbb R, c \in \mathbb R^n} t \\
+\| \xk - c\| \le t \\
+\| {x_{inf}}_i - c \| \ge t \quad \forall i
+\end{align*}
+
+
 
 Assume that the constraints are always linearly independent.
 \begin{align*}
@@ -38,31 +164,112 @@ There exists an $\epsilon > 0$ such that $\alpha_1(x) > \epsilon$ for all $x \in
 \end{proof}
 
 
-\begin{theorem}
-Let $\dbuf \in (0, 1)$.
-If $\dk^3 \le \frac {1}{2\epsilon_f}\dbuf\alpha_1(\modelconstraint, \xk)$, then 
+During iteration $k$, define
 \begin{align*}
-B_{\infty}(\xk, \dk)\cap C\left(\xk, \hfeasdir(\xk), (1-\dbuf)\alpha_1(\modelconstraint, \xk)\right) \subseteq \feasible.
+u^{(k)} = \hfeasdir(\modelconstraint, \iteratekpone) \\
+\alpha_1^k = \alpha_1(\modelconstraint, \iteratekpone) \\
+\alpha_2^k = \alpha_2(\modelconstraint, \iteratekpone) \\
+\mathcal A_k = \mathcal A(\modelconstraint, \iteratekpone) \\
+C_k = C\left(\iteratekpone + \dbuf\dk u^{(k)}, u^{(k)}, \abuf\alpha_1^k\right). \\
 \end{align*}
+
+\begin{theorem}
+Let $\dbuf \in (0, 1), \abuf \in (0, 1)$.
+If
+\begin{align*}
+\dk \le \min\left\{
+\sqrt{\frac{(1 - \abuf) \alpha_1^k}{\epsilon_g(1 + \abuf\alpha_1^k)}},
+\sqrt{\alpha_1^k \left(\epsilon_g + \frac{\epsilon_f}{\dbuf}\right)^{-1}}
+\right\},
+\end{align*}
+then $B_{\infty}(\iteratekpone, \dk)\cap C_k \subseteq \feasible.$
 \end{theorem}
 
 \begin{proof}
-Let $y = \xk + t\hfeasdir(\xk) + s \in B_{\infty}(\xk, \dk)\cap C\left(\xk, \hfeasdir(\xk), (1-\dbuf)\alpha_1(\modelconstraint, \xk)\right)$ so that $\|s\| \le t(1-\dbuf)\alpha_1(\modelconstraint; \xk)$.
-Let $i \in \mathcal A (\modelconstraint, \xk)$ be arbitrary.
-We know that there exists a $v\in\mathbb R^n$ with $\|v_i\|=1$ such that
+
+
+Let $y \in B_{\infty}(\iteratekpone, \dk)\cap C_k$, so that
 \begin{align*}
-c_i(y) = m_{c_i}(y) + \epsilon_f \dk^3 v_i
+y = \iteratekpone + \dbuf\dk u^{(k)} + tu^{(k)} + s \\
+\|s\| \le t \abuf\alpha_1^k \\
+s^Tu^{(k)} = 0.
+\end{align*}
+Let $i \in \mathcal A_k$ be arbitrary.
+We know that there exist $\mu,\nu^i\in\mathbb R^n$ with $|\mu_j| \le 1\forall j, \|\nu^i\|\le 1$ such that
+\begin{align*}
+c_i(\iteratekpone) = m_{c_i}(\iteratekpone) + \epsilon_f \dk^3 \mu^i \\
+\nabla c_i(y) = \nabla m_{c_i}(y) + \epsilon_g \dk^2 \nu^i
 \end{align*}
 
 
+By the assumptions,
+\begin{align*}
+\dk \le \sqrt{\frac{(1 - \abuf) \alpha_1^k}{\epsilon_g(1 + \abuf\alpha_1^k)}}\\
+\dk^2  \le \frac{(1 - \abuf) \alpha_1^k}{\epsilon_g(1 + \abuf\alpha_1^k)}\\
+\epsilon_g \dk^2 (1 + \abuf\alpha_1^k) \le (1 - \abuf) \alpha_1^k\\
+-t(1 - \abuf) \alpha_1^k + \epsilon_g t\dk^2 (1 + \abuf\alpha_1^k) \le 0.
+\end{align*}
+
+From there,
+\begin{align*}
+\nabla \hat c_{i}^T(\iteratekpone)(tu^{(k)} + s) = 
+\nabla \hat {m_c}_{i}^T(tu^{(k)} + s) + \epsilon_g \dk^2 {\nu^i}^T(tu^{(k)} + s) \\
+=t\nabla \hat {m_c}_{i}^Tu^{(k)} + \nabla \hat {m_c}_{i}^Ts + \epsilon_g \dk^2 (t + \|s\|) \\
+\le -t \alpha_1^k + \|s\| + \epsilon_g \dk^2 (t + t \abuf\alpha_1^k) \\
+\le -t \alpha_1^k + t \abuf \alpha_1^k  + \epsilon_g t\dk^2 (1 + \abuf\alpha_1^k) \\
+\le -t(1 - \abuf) \alpha_1^k  + \epsilon_g t\dk^2 (1 + \abuf\alpha_1^k) \le 0.
+\end{align*}
+
+
+% \begin{align*}
+% \nabla m_{c_i}^T(\iteratekpone)u^{(k)} \le \max_i \nabla m_{c_i}^T(\iteratekpone)u^{(k)} \\
+% -\nabla m_{c_i}^T(\iteratekpone)u^{(k)} \ge -\max_i \nabla m_{c_i}^T(\iteratekpone)u^{(k)} \\
+% -\nabla m_{c_i}^T(\iteratekpone)u^{(k)} \ge \alpha_1^k \\
+% \alpha_1^k \le -\nabla m_{c_i}^T(\iteratekpone)u^{(k)}\label{aaaaaaaa_1}. \\
+% \end{align*}
+
+Also by the assumptions,
+\begin{align*}
+\dk \le \sqrt{\alpha_1^k \left(\epsilon_g + \frac{\epsilon_f}{\dbuf}\right)^{-1}} \\
+\dk^2 \le \alpha_1^k \left(\epsilon_g + \frac{\epsilon_f}{\dbuf}\right)^{-1} \\
+\dk^2(\epsilon_g + \frac{\epsilon_f}{\dbuf}) \le \alpha_1^k \le -\nabla m_{c_i}^T(\iteratekpone)u^{(k)}\\
+\nabla m_{c_i}^T(\iteratekpone)u^{(k)} + \dk^2(\epsilon_g + \frac{\epsilon_f}{\dbuf}) \le 0\\
+\dbuf\nabla m_{c_i}^T(\iteratekpone)u^{(k)} + \dk^2(\epsilon_g \dbuf + \epsilon_f) \le 0.
+\end{align*}
+
+From there,
+
 
 \begin{align*}
-\nabla \hat c_{\mathcal A(\xk)}^T(y - \xk) = \nabla \hat {m_c}_{\mathcal A(\modelconstraint, \xk)}^T(t\hfeasdir(\xk) + s) + \epsilon_f \dk^3 v^T(t\hfeasdir(\xk) + s) \\
-\le t \nabla \hat {m_c}_{\mathcal A(\modelconstraint, \xk)}^T\hfeasdir(\xk) + \nabla \hat {m_c}_{\mathcal A(\modelconstraint, \xk)}^T s + \epsilon_f \dk^3(t + \|s\|) \\
-\le \|s\| - t \alpha_1(\modelconstraint, \xk)+ 2\epsilon_f \dk^4\\
-\le t(1-\dbuf)\alpha_1(\modelconstraint, \xk) - t \alpha_1(\xk)+ 2\epsilon_f \dk^4\\
-\le -t\dbuf\alpha_1(\modelconstraint, \xk) + 2\epsilon_f \dk^4 \\
+\epsilon_f \dk^3 \mu_i + \nabla {c}^T_{i}(\iteratekpone)\dbuf\dk u^{(k)} = 
+\epsilon_f \dk^3 \mu_i + (\nabla m_{c_i}(\iteratekpone) + \epsilon_g \dk^2 \nu^i)^T\dbuf\dk u^{(k)} \\
+= \epsilon_f \dk^3 \mu_i + \dbuf\dk\nabla m_{c_i}^T(\iteratekpone)u^{(k)}  + \epsilon_g \dk^3 \dbuf {\nu^i}^Tu^{(k)} \\
+\le \dk\left(\dbuf\nabla m_{c_i}^T(\iteratekpone)u^{(k)} + \dk^2(\epsilon_g \dbuf + \epsilon_f)\right) \le 0.
 \end{align*}
+
+
+Finally,
+\begin{align*}
+c_{\mathcal A_k}(y) = c_{\mathcal A_k}(\iteratekpone) + \nabla {c}^T_{\mathcal A_k}(\iteratekpone)(y - \iteratekpone) + \xi \\
+= m_{c_{\mathcal A_k}}(\iteratekpone) + \epsilon_f \dk^3 \mu^{\mathcal A_k} + \nabla {c}^T_{\mathcal A_k}(\iteratekpone)(y - \iteratekpone) + \xi \\
+= \epsilon_f \dk^3 \mu^{\mathcal A_k} + \nabla {c}^T_{\mathcal A_k}(\iteratekpone)(y - \iteratekpone) + \xi \\
+= \epsilon_f \dk^3 \mu^{\mathcal A_k} + \nabla {c}^T_{\mathcal A_k}(\iteratekpone)\dbuf\dk u^{(k)} + 
+\|\nabla {c}^T_{\mathcal A_k}(\iteratekpone)\| \nabla \hat{c}^T_{\mathcal A_k}(\iteratekpone)(tu^{(k)} + s) + \xi  \\
+\le \xi.
+\end{align*}
+% \nabla \hat {c}_{\mathcal A_k}(\iteratekpone)^T(\dbuf\dk u^{(k)} + tu^{(k)} + s) = 
+
+% 
+% \begin{align*}
+% \nabla \hat c_{\mathcal A_k}^T(y - \iteratekpone) = 
+% \nabla \hat {m_c}_{\mathcal A_k}^T(\dbuf\dk u^{(k)} + tu^{(k)} + s) + \epsilon_f \dk^3 \nu^T(\dbuf\dk u^{(k)} + tu^{(k)} + s) \\
+% \le \nabla \hat {m_c}_{\mathcal A_k}^T(\dbuf\dk u^{(k)} + tu^{(k)} + s) + \epsilon_f \dk^3 \nu^T(\dbuf\dk u^{(k)} + tu^{(k)} + s) \\
+% \end{align*}
+
+% \le t \nabla \hat {m_c}_{\mathcal A(\modelconstraint, \xk)}^T\hfeasdir(\xk) + \nabla \hat {m_c}_{\mathcal A(\modelconstraint, \xk)}^T s + \epsilon_f \dk^3(t + \|s\|) \\
+% \le \|s\| - t \alpha_1(\modelconstraint, \xk)+ 2\epsilon_f \dk^4\\
+% \le t(1-\dbuf)\alpha_1(\modelconstraint, \xk) - t \alpha_1(\xk)+ 2\epsilon_f \dk^4\\
+% \le -t\dbuf\alpha_1(\modelconstraint, \xk) + 2\epsilon_f \dk^4 \\
 
 \end{proof}
 
@@ -156,72 +363,4 @@ With these definitions, the active constraints are satisified at $y$:
 A_{i}y - b_{i} = A_{i}(t\hat u + s) = A_{i}s + t A_{i}n \le \|s\| - \alpha t \le 0.
 \end{align*}
 
-
-
-
-
-
-
-\subsection{Using full models}
-I have implemented an algorithm that uses higher order models to approximate the constraints.
-
-In this algorithm, we add additional degrees of freedom to the constraints to cut off points that have been evaluated and are infeasible.
-The models are forced to be a given negative value at these points.
-
-One question for this method is how many constraints to model.
-
-
-I implemented Kriging, as this can use as many points as are available.
-However, this requires using some artificial value of the constraints at infeasible points.
-
-\subsection{Using linear models}
-
-Another method is to add additional linear constraints each time a new point is evaluated and infeasible.
-
-Each new linear constraint cuts off an infeasible point and stays atleast a fraction of the trust region away from that infeasible point.
-
-
-\includegraphics[width=300px]{images/pyomo_cut_solution.png}
-
-\subsubsection{formulation}
-
-The optimization program for finding this constraint is given by:
-
-A set of $u^i, 1 \le i \le n_{I}$ infeasible points.
-A set of $v^i, 1 \le i \le n_{F}$ feasible points.
-
-The current Lagrange polynomial $\frac 1 2 x^T Q x + b^Tx$.
-Require all infeasible point to be a distance at least $d$ from the feasible region.
-
-
-Find a set of planes $(n^i, b^i), 1 \le i \le n_{P}$.
-
-Require $n_P \ge n_I$.
-
-
-What we want big:
-\begin{align}
-\max_{x} & \frac 1 2 x^T Q x + b^Tx &\\
- & {n^i}^T x \le b^i & \forall 1 \le i \le n_{P} \\
- & {n^i}^T v_j \le b^i & \forall 1 \le i \le n_{P}, 1\le j\le  n_{F} \\
- & {n^i}^T u_i \ge b^i + d & \forall 1 \le i \le n_{I} \\
- & \| n^i \| = 1 & \forall 1 \le i \le n_{I} \\
- & 0 \le x_i \le 1 & \forall 1 \le i \le n \\
-\end{align}
-
-
-A set of $v_i, 1 \le i \le n_{I}$ feasible points.
-
-
-
-
-\subsection{Using a sacred region}
-
-Another approach is to ensure that we will always have a large enough feasible region within the current trust region.
-
-\begin{align*}
-\max_{t \in \mathbb R, c \in \mathbb R^n} t \\
-\| \xk - c\| \le t \\
-\| {x_{inf}}_i - c \| \ge t \quad \forall i
-\end{align*}
 
