@@ -66,7 +66,7 @@ A set of $v_i, 1 \le i \le n_{I}$ feasible points.
         \item One of the following two  \begin{itemize}
             \item \begin{itemize}
                 \item It either touches a constraint
-                \item The center lies on $\hat u$
+                \item The center lies on $\hat u$ of the previous iteration
                 \item It has two singular values
             \end{itemize}
         \end{itemize}
@@ -259,6 +259,10 @@ c_{\mathcal A_k}(y) = c_{\mathcal A_k}(\iteratekpone) + \nabla {c}^T_{\mathcal A
 \end{align*}
 % \nabla \hat {c}_{\mathcal A_k}(\iteratekpone)^T(\dbuf\dk u^{(k)} + tu^{(k)} + s) = 
 
+
+
+
+
 % 
 % \begin{align*}
 % \nabla \hat c_{\mathcal A_k}^T(y - \iteratekpone) = 
@@ -274,6 +278,206 @@ c_{\mathcal A_k}(y) = c_{\mathcal A_k}(\iteratekpone) + \nabla {c}^T_{\mathcal A
 \end{proof}
 
 
+
+\begin{theorem}
+Let $m$ be the number of constraints that intersect the trust region.
+For sufficiently small $\dk$, the number of subsets $S$ of $\{1, 2, \ldots, m\}$
+whose constraints have linearizations that intersect is either 1 or 0.
+\end{theorem}
+
+\begin{proof}
+\end{proof}
+
+
+
+\begin{align*}
+m_{c_i}(y) = m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T(y - \xk) \\
+m_{c_i}(\xk - t \nabla m_{c_i}(\xk)) = m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T(\xk - t \nabla m_{c_i}(\xk) - \xk) = 0 \\
+m_{c_i}(\xk) = t\|\nabla m_{c_i}(\xk)\|^2 \\
+t = \frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \\
+m_{c_i}\left(\xk - \frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk)\right) = 0
+\end{align*}
+
+\begin{theorem}
+Let $\alpha \in (0, 1)$, $\beta \in (0, 1)$ be given.
+Define the cone $C_i$ as:
+\begin{align*}
+C_i = \left\{x | x = \xk - (1 - \alpha\dk^p)\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk) - t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s,s^T\nabla m_{c_i}(\xk)=0, \|s\| \le (1 - \beta\dk^{-2})t \right\}
+\end{align*}
+There exists an $\epsilon$, such that if $\dk < \epsilon$ and $|m_{c_i}(\xk)| \le \dk\|\nabla m_{c_i}(\xk)\|$,
+then $y \in C_i \cap B_{\infty}(\xk, \dk) \Longrightarrow c_i(y) \le 0$.
+\end{theorem}
+
+\begin{proof}
+Let $y$ be as defined, and $M \ge \sup_{x \in B_{\infty}(\xk, \dk)} \frac 1 2 \nabla^2 c_i(x)$.
+There exists a $\nu \in \mathbb R^n$, $\|\nu\|=1$ such that 
+\begin{align*}
+\nabla c_i(\xk) = \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu.
+\end{align*}
+
+
+\begin{align*}
+c_i(y) = c_i(\xk) + \nabla c_i(\xk)^T(y - \xk) + \frac 1 2 (y - \xk)^T\nabla^2c_i(\xi) (y - \xk) \\
+c_i(y) - \frac 1 2 (y - \xk)^T\nabla^2c_i(\xi) (y - \xk) = c_i(\xk) + \nabla c_i(\xk)^T(y - \xk) \\
+= c_i(\xk) + \nabla c_i(\xk)^T(y - \xk + \frac{c_i(\xk)}{\|\nabla c_i(\xk)\|^2}\nabla c_i(\xk) + \xk - \frac{c_i(\xk)}{\|\nabla c_i(\xk)\|^2}\nabla c_i(\xk)- \xk) \\
+= \nabla c_i(\xk)^T(y - \xk + \frac{c_i(\xk)}{\|\nabla c_i(\xk)\|^2}\nabla c_i(\xk) - \xk)\\
+= \nabla c_i(\xk)^T(\xk - (1 - \alpha\dk^{\frac 1 2})\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk) - t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s - \xk + \frac{c_i(\xk)}{\|\nabla c_i(\xk)\|^2}\nabla c_i(\xk) - \xk) \\
+= \nabla c_i(\xk)^T \left(\xk -\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk)- \xk + \frac{c_i(\xk)}{\|\nabla c_i(\xk)\|^2}\nabla c_i(\xk) \right) \\
++ \nabla c_i(\xk)^T(\alpha\dk^{\frac 1 2}\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk) - t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s  - \xk)
+\end{align*}
+
+
+
+% \le m_{c_i}(\xk) + \nabla c_i(\xk)^T(y - \xk) + M \|y - \xk\|^2 \\
+% \le m_{c_i}(\xk) + \nabla c_i(\xk)^T((1 - \alpha\dk)\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk) + t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s) + M \|y - \xk\|^2
+
+\begin{align*}
+\dk \le \sqrt{\frac {1 + \delta} {2\epsilon_{g}}} \\
+2\dk^2 - \beta \le \frac{1 + \delta}{\epsilon_{g}} \\
+\dk^2(2 - \beta\dk^{-2}) \le \frac{1 + \delta}{\epsilon_{g}} \\
+\epsilon_{g}\dk^2(t +  (1 - \beta\dk^{-2})t) \le t + \delta t \\
+\epsilon_{g}\dk^2(t + \|s\|) \le t + \delta t\\
+- \epsilon_{g}\dk^2\nu^T(t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s) \le t + \delta t \\
+-t - \epsilon_{g}\dk^2\nu^T(t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s) \le \delta t \\
+(\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu)^T(- t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s) \le \delta t \\
+\nabla c_i(\xk)^T(- t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s) \le \delta t \\
+\end{align*}
+
+
+
+\begin{align*}
+\dk^{\frac 1 2} \le \frac{\alpha+\delta}{\sqrt{2}\epsilon_{g}}\|\nabla c_i(\xk)\|^2\\
+\dk^{2} \le \dk^{\frac 1 2}\frac{\alpha+\delta}{\sqrt{2}\epsilon_{g}}\dk\|\nabla c_i(\xk)\|^2 \\
+\dk^{2} \le\dk^{\frac 1 2} \frac{(\alpha + \delta)}{\sqrt{2}\epsilon_{g}}\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\|\nabla c_i(\xk)\|^2\\
+2\epsilon_{g}^2\dk^4
+\le (\dk^{\frac 1 2}(\alpha + \delta))^2\frac{\|\nabla m_{c_i}(\xk)\|^2}{|m_{c_i}(\xk)|^2}\|\nabla c_i(\xk)\|^4\\
+\epsilon_{g}^2\dk^4
++\left\|\|\nabla m_{c_i}(\xk)\|^2 - \|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2\|\nu \|^2 \right\|^2
+\le (\dk^{\frac 1 2}(\alpha + \delta))^2\frac{\|\nabla m_{c_i}(\xk)\|^2}{|m_{c_i}(\xk)|^2}\|\nabla c_i(\xk)\|^4\\
+\|\nabla m_{c_i}(\xk)\|^2\left\|\nabla c_i(\xk) - \nabla m_{c_i}(\xk)\right\|^2
++\|\nabla m_{c_i}(\xk)\|^2\left|\|\nabla m_{c_i}(\xk)\|^2 - \|\nabla c_i(\xk)\|^2
+\right|^2\\
+\le \frac{(\dk^{\frac 1 2}(\alpha + \delta))^2}{|m_{c_i}(\xk)|^2}\|\nabla m_{c_i}(\xk)\|^4\|\nabla c_i(\xk)\|^4\\
+\left\|\nabla c_i(\xk)\|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla m_{c_i}(\xk)\|^2\right\|^2
++\left\|\nabla m_{c_i}(\xk)\|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2
+\right\|^2\\
+\le \frac{\dk^{\frac 1 2}(\alpha + \delta)}{|m_{c_i}(\xk)|}\|\nabla m_{c_i}(\xk)\|^2\|\nabla c_i(\xk)\|^2\\
+\left\|\nabla c_i(\xk)\|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla m_{c_i}(\xk)\|^2
++\nabla m_{c_i}(\xk)\|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2
+\right\|\\
+\le  \frac{(\dk^{\frac 1 2}(\alpha + \delta))^2}{|m_{c_i}(\xk)|^2}\|\nabla m_{c_i}(\xk)\|^4\|\nabla c_i(\xk)\|^4\\
+\left\|\nabla c_i(\xk)\|\nabla m_{c_i}(\xk)\|^2 -
+\nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2
+\right\| \le \frac{\dk^{\frac 1 2}(\alpha + \delta)}{|m_{c_i}(\xk)|}\|\nabla m_{c_i}(\xk)\|^2\|\nabla c_i(\xk)\|^2\\
+\left\|\nabla c_i(\xk)\|\nabla m_{c_i}(\xk)\|^2 -
+\nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2
+\right\| \le \frac{\dk^{\frac 1 2}(\alpha + \delta)}{|m_{c_i}(\xk)|}\|\nabla m_{c_i}(\xk)\|^2\|\nabla c_i(\xk)\|^2\\
+\left\|\frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|^2} -
+\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
+\right\| \le \frac{\dk^{\frac 1 2}(\alpha + \delta)}{|m_{c_i}(\xk)|}\\
+\|
+\xk - \frac{c_i(\xk)}{\|\nabla c_i(\xk)\|^2}\nabla c_i(\xk) -
+\xk + \frac{m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}\nabla m_{c_i}(\xk)
+\| \le \dk^{\frac 1 2}(\alpha + \delta)\\
+\end{align*}
+
+
+\begin{theorem}
+Let $c_i$ be a constraint that intersects $B_{\infty}(\xk, \dk)$.
+\end{theorem}
+
+\begin{proof}
+\end{proof}
+
+
+% \begin{align*}
+% \dk^{2-p} - \epsilon_g\dk^2\frac{\alpha}{\sqrt{2}\epsilon_{g}}
+% \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|} \le \frac{\alpha}{\sqrt{2}\epsilon_{g}}
+% \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\|\nabla m_{c_i}(\xk)\|^2\\
+% \left\|\frac{\nabla c_i(\xk) \|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2}{\|\nabla c_i(\xk)\|^2\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\nabla c_i(\xk) \|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2
+% \right\| \le \|\nabla c_i(\xk)\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|( \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu) \|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2
+% \right\| \\
+% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\nabla m_{c_i}(\xk)\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2\nu\|\nabla m_{c_i}(\xk)\|^2  - \nabla m_{c_i}(\xk)(\| \nabla m_{c_i}(\xk)\|^2 + \|\epsilon_{g}\dk^2\nu\|^2)
+% \right\| \\
+% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\epsilon_{g}\dk^2\nu\|\nabla m_{c_i}(\xk)\|^2  - \nabla m_{c_i}(\xk)\|\epsilon_{g}\dk^2\nu\|^2\right\|
+% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \dk\epsilon_g\left\|\nu\|\nabla m_{c_i}(\xk)\|^2  - \nabla m_{c_i}(\xk)\right\|
+% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha}{|m_{c_i}(\xk)|}\\
+% \dk\epsilon_g\left\|\nu\|\nabla m_{c_i}(\xk)\|  - \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}\right\|
+% \le (\| \nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\| \frac{\alpha}{|m_{c_i}(\xk)|}\\
+% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)
+% \le (\| \nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\alpha \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
+% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1) - \epsilon_{g}\dk^2\alpha \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
+% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)|m_{c_i}(\xk)| - \epsilon_{g}\dk^2\alpha \|\nabla m_{c_i}(\xk)\|
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha {\|\nabla m_{c_i}(\xk)\|}\\
+% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)\dk\|\nabla m_{c_i}(\xk)\| - \epsilon_{g}\dk^2\alpha \|\nabla m_{c_i}(\xk)\|
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha {\|\nabla m_{c_i}(\xk)\|}\\
+% \dk^2\left(\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)\|\nabla m_{c_i}(\xk)\| - \epsilon_{g}\alpha \|\nabla m_{c_i}(\xk)\|\right)
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha {\|\nabla m_{c_i}(\xk)\|}\\
+% \dk^2\left(\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1) - \epsilon_{g}\alpha \right)
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha\\
+% \dk^2\epsilon_g\left(\|\nabla m_{c_i}(\xk)\| + 1 - \alpha \right)
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha\\
+% \dk^2\epsilon_g\left(\|\nabla m_{c_i}(\xk)\| + 1 - \alpha \right)
+% \le \| \nabla m_{c_i}(\xk)\|^2\alpha\\
+% \dk^2
+% \le \frac{\alpha}{\epsilon_g}\frac{\| \nabla m_{c_i}(\xk)\|^2}{\|\nabla m_{c_i}(\xk)\| + 1} \\
+% \dk^2
+% \le \frac{\alpha}{\epsilon_g}\left(\| \nabla m_{c_i}(\xk)\| - 1 + \frac{1}{1 + \| \nabla m_{c_i}(\xk)\|}    \right) \\
+% \left\|\frac{\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu}{\|\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2} -
+% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\frac{\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu}{\|\nabla m_{c_i}(\xk)\|^2 + \|\epsilon_{g}\dk^2\nu\|^2} -
+% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\frac{\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu}{\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2} -
+% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\frac{(\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu)\|\nabla m_{c_i}(\xk)\|^2 - (\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\nabla m_{c_i}(\xk)}{(\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|\frac{\epsilon_{g}\dk^2\nu\|\nabla m_{c_i}(\xk)\|^2 - \epsilon_{g}\dk^2\nabla m_{c_i}(\xk)}{(\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
+% \left\|
+% \frac{\nu\|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)}
+% {(\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\|^2}
+% \right\|
+% \le \frac{\alpha}{\epsilon_g \dk |m_{c_i}(\xk)|}\\
+% \left\|
+% \frac{\nu - \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}}
+% {\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2}
+% \right\|
+% \le \frac{\alpha}{\epsilon_g \dk |m_{c_i}(\xk)|}\\
+% \left\|
+% \frac{\|\nabla m_{c_i}(\xk)\|\nu - \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}}
+% {\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2}
+% \right\|
+% \le \frac{\alpha\|\nabla m_{c_i}(\xk)\|}{\epsilon_g \dk |m_{c_i}(\xk)|}\\
+% \left\|\frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}\frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|} -
+% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}
+% \right\| \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
+% |\frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}\frac{\|\nabla c_i(\xk)\|}{\|\nabla c_i(\xk)\|} -
+% \frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla m_{c_i}(\xk)\|}
+% | \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
+% |1 - \frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}| \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
+% |\|\nabla c_i(\xk)\| - \|\nabla m_{c_i}(\xk)\|| \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|\|\nabla c_i(\xk)\|}{|m_{c_i}(\xk)|}\\
+% \left\|
+% \frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|^2} -
+% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
+% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|} \le \frac{\alpha}{\|\nabla m_{c_i}(\xk)\|}\\
+% \left\|
+% \frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}\frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|} -
+% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}
+% \right\| \le \alpha\\
+% \end{align*}
+
+
+\end{proof}
 
 
 
