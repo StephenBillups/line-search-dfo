@@ -302,7 +302,7 @@ m_{c_i}\left(\xk - \frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i
 Let $\alpha \in (0, 1)$, $\beta \in (0, 1)$ be given.
 Define the cone $C_i$ as:
 \begin{align*}
-C_i = \left\{x | x = \xk - (1 - \alpha\dk^p)\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk) - t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s,s^T\nabla m_{c_i}(\xk)=0, \|s\| \le (1 - \beta\dk^{-2})t \right\}
+C_i = \left\{x | x = \xk - (1 - \alpha\dk^{\frac 1 2})\frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2} \nabla m_{c_i}(\xk) - t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s,s^T\nabla m_{c_i}(\xk)=0, \|s\| \le (1 - \beta\dk^{-2})t \right\}
 \end{align*}
 There exists an $\epsilon$, such that if $\dk < \epsilon$ and $|m_{c_i}(\xk)| \le \dk\|\nabla m_{c_i}(\xk)\|$,
 then $y \in C_i \cap B_{\infty}(\xk, \dk) \Longrightarrow c_i(y) \le 0$.
@@ -381,100 +381,769 @@ c_i(y) - \frac 1 2 (y - \xk)^T\nabla^2c_i(\xi) (y - \xk) = c_i(\xk) + \nabla c_i
 \| \le \dk^{\frac 1 2}(\alpha + \delta)\\
 \end{align*}
 
-
-\begin{theorem}
-Let $c_i$ be a constraint that intersects $B_{\infty}(\xk, \dk)$.
-\end{theorem}
-
-\begin{proof}
 \end{proof}
 
 
+
+\begin{theorem}
+\end{theorem}
+
+\begin{proof}
+Given a point $c$, we wish to find the maximum-volume ellipsoid  $E \subset P$ centered at $c$, where the set $P$ is defined by $c_i$, $n_i$, $\alpha_i$, $\|n_i\| = 1$:
+\[
+P = \{ x \in \mathbb R^n \; | \;  x = c + c_i + tn_i + s_i, s_i^Tn_i = 0, t>0, \|s_i\| \le \alpha_i t \quad \forall i = 1,\ldots,m\},
+\]
+we wish to find the maximum-volume ellipsoid $E \subset P$ centered at a point $c$.
+
+
+Let $\bar{c_i} = c_i - c$ and $\bar x = x - c$ so that the set becomes
+\[
+P = \{ x \in \mathbb R^n \; | \;  x = \bar c_i + tn_i + s_i, s_i^Tn_i = 0, t>0, \|s_i\| \le \alpha_i t \forall i = 1,\ldots,m\},
+\]
+The ellipsoid can then be centered at zero, and defined by a symmetric positive definite matrix $Q \succ 0$:
+\[
+E = \{ \bar x \; | \; \frac 1 2 \bar x^T Q \bar x \le 1 \}.
+\]
+Let 
+\begin{align*}
+g_i(\bar x) = \|n_i^T\bar xn_i - (\bar x - n_i^T\bar xn_i)\|^2 - (\alpha_i n_i^T\bar x)^2 \\
+= \frac 1 2 \|2(n_in_i^T - I)\bar x\|^2 - \frac 1 2 (\alpha_i n_i^T\bar x)^2
+\end{align*}
+so that the set $P = \{\bar x | g_i(\bar x) \le 0\}$.
+Our goal is to determine $Q$ to maximize the volume of $E$ such that $\mu^{k} + E \subset P$.
+Define the auxiliary function 
+\[
+f(\bar x) = \frac 1 2 \bar x^T Q \bar x
+\]
+so that 
+\[
+E = \{ \bar x \; | \; f(\bar x) \le 1 \}.
+\]
+
+\color{red}
+Because $Q$ is positive definite, $f$ has a unique minimum on each cone 
+\begin{align*}
+C_i = \{ t, s | \bar c_i + tn_i + s_i, s_i^Tn_i = 0, t>0, \|s_i\| = \alpha_i t \}.
+\end{align*}
+\color{black}
+Let this minimum be $t_i n_i + r_i = d^{(i)} \in \argmin_{d \in C_i} f(d)$ for $i=1,\ldots,m$ where $t_i=n_i^Td^{(i)}$ and $r_i = 2 (n_in_i^T - I)\bar d^{(i)}$.
+By the first order optimality conditions, there exists a $\lambda \in \mathbb R^m$ such that
+\begin{align*}
+\nabla f(d^{(i)}) = Q d^{(i)} = \lambda_i \left((2n_i^Tn_i - I)^T2 (n_in_i^T - I)d^{(i)} + \alpha_i n_i \right) \quad \forall 1\le i\le m \\
+\Longrightarrow t_in_i + r_i = \lambda_i Q^{-1}\left((2n_i^Tn_i - I)^Tr_i + \alpha_i n_i\right) \quad \forall 1\le i\le m \\
+\Longrightarrow t_in_i + r_i = -\lambda_i Q^{-1}r_i + \lambda_i\alpha_i Q^{-1} n_i \quad \forall 1\le i\le m \\
+\Longrightarrow t_in_i + \left[I + \lambda_i Q^{-1}\right]r_i = \lambda_i\alpha_i Q^{-1} n_i \quad \forall 1\le i\le m \\
+\end{align*}
+Dotting with $r_i$
+\begin{align*}
+r_i^T\left[I + \lambda_i Q^{-1}\right]r_i = \lambda_i\alpha_i r_i^TQ^{-1} n_i \quad \forall 1\le i\le m \\
+\|r_i\|^2 = - \lambda_ir_i Q^{-1}r_i + \lambda_i\alpha_i r_i^TQ^{-1} n_i \quad \forall 1\le i\le m \\
+\|r_i\|^2 = - \lambda_ir_i Q^{-1}\left[r_i + \alpha_i n_i\right] \quad \forall 1\le i\le m \\
+\|r_i\|^2 = \lambda_ir_i Q^{-1}\left[\alpha_i n_i - r_i\right] \quad \forall 1\le i\le m
+\end{align*}
+
+and $n_i$
+\begin{align*}
+n_i^Tt_in_i + \left[n_i^T + \lambda_i n_i^TQ^{-1}\right]r_i = \lambda_i\alpha_i n_i^TQ^{-1} n_i \quad \forall 1\le i\le m \\
+t_i + \lambda_i n_i^TQ^{-1}r_i = \lambda_i\alpha_i n_i^TQ^{-1} n_i \quad \forall 1\le i\le m \\
+t_i = \lambda_i\alpha_i n_i^TQ^{-1} n_i - \lambda_i n_i^TQ^{-1}r_i \quad \forall 1\le i\le m \\
+t_i = \lambda_in_i^TQ^{-1}\left[\alpha_i n_i - r_i\right] \quad \forall 1\le i\le m \\
+\end{align*}
+
+and adding gives
+\begin{align*}
+\|r_i\|^2  + \alpha_i t_i = \lambda_i\left[r_i + \alpha n_i\right]^TQ^{-1}\left[\alpha_i n_i - r_i\right] \quad \forall 1\le i\le m \\
+\|r_i\|^2  + \alpha_i t_i = \lambda_i\left[ \alpha_ir_i^T Q^{-1} n_i - r_i^T Q^{-1}r_i  + \alpha n_i^TQ^{-1}\alpha_i n_i - \alpha n_i^TQ^{-1}r_i   \right] \quad \forall 1\le i\le m \\
+\|r_i\|^2  + \alpha_i t_i = \lambda_i\left(\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i  \right) \quad \forall 1\le i\le m \\
+t_i = \frac{-\alpha \pm \sqrt{\alpha_i^2 - 4\alpha_i^2()}}{2\alpha_i^2} \\
+2\alpha_it_i = -1 \pm \sqrt{1 + 4\lambda(\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i)} \\
+\lambda_i = \frac{\|r_i\|^2  + \alpha_i t_i}{\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i}
+\end{align*}
+
+Plugging in,
+\begin{align*}
+t_in_i + r_i = \lambda_i \left[\alpha_i Q^{-1} n_i - Q^{-1}r_i \right] \quad \forall 1\le i\le m \\
+t_in_i + r_i = (\|r_i\|^2  + \alpha_i t_i)\frac{\alpha_i Q^{-1} n_i - Q^{-1}r_i}{\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i} \quad \forall 1\le i\le m \\
+\frac{\bar x}{\|\bar x\|} = \frac{\alpha_i Q^{-1} n_i - Q^{-1}r_i}{\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i} \quad \forall 1\le i\le m \\
+\end{align*}
+
 % \begin{align*}
-% \dk^{2-p} - \epsilon_g\dk^2\frac{\alpha}{\sqrt{2}\epsilon_{g}}
-% \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|} \le \frac{\alpha}{\sqrt{2}\epsilon_{g}}
-% \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\|\nabla m_{c_i}(\xk)\|^2\\
-% \left\|\frac{\nabla c_i(\xk) \|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2}{\|\nabla c_i(\xk)\|^2\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\nabla c_i(\xk) \|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\|\nabla c_i(\xk)\|^2
-% \right\| \le \|\nabla c_i(\xk)\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|( \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu) \|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)\| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2
-% \right\| \\
-% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\nabla m_{c_i}(\xk)\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2\nu\|\nabla m_{c_i}(\xk)\|^2  - \nabla m_{c_i}(\xk)(\| \nabla m_{c_i}(\xk)\|^2 + \|\epsilon_{g}\dk^2\nu\|^2)
-% \right\| \\
-% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\epsilon_{g}\dk^2\nu\|\nabla m_{c_i}(\xk)\|^2  - \nabla m_{c_i}(\xk)\|\epsilon_{g}\dk^2\nu\|^2\right\|
-% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \dk\epsilon_g\left\|\nu\|\nabla m_{c_i}(\xk)\|^2  - \nabla m_{c_i}(\xk)\right\|
-% \le \| \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2\|\nabla m_{c_i}(\xk)\|^2 \frac{\alpha}{|m_{c_i}(\xk)|}\\
-% \dk\epsilon_g\left\|\nu\|\nabla m_{c_i}(\xk)\|  - \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}\right\|
-% \le (\| \nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\| \frac{\alpha}{|m_{c_i}(\xk)|}\\
-% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)
-% \le (\| \nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\alpha \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
-% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1) - \epsilon_{g}\dk^2\alpha \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha \frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
-% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)|m_{c_i}(\xk)| - \epsilon_{g}\dk^2\alpha \|\nabla m_{c_i}(\xk)\|
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha {\|\nabla m_{c_i}(\xk)\|}\\
-% \dk\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)\dk\|\nabla m_{c_i}(\xk)\| - \epsilon_{g}\dk^2\alpha \|\nabla m_{c_i}(\xk)\|
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha {\|\nabla m_{c_i}(\xk)\|}\\
-% \dk^2\left(\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1)\|\nabla m_{c_i}(\xk)\| - \epsilon_{g}\alpha \|\nabla m_{c_i}(\xk)\|\right)
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha {\|\nabla m_{c_i}(\xk)\|}\\
-% \dk^2\left(\epsilon_g(\|\nabla m_{c_i}(\xk)\| + 1) - \epsilon_{g}\alpha \right)
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha\\
-% \dk^2\epsilon_g\left(\|\nabla m_{c_i}(\xk)\| + 1 - \alpha \right)
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha\\
-% \dk^2\epsilon_g\left(\|\nabla m_{c_i}(\xk)\| + 1 - \alpha \right)
-% \le \| \nabla m_{c_i}(\xk)\|^2\alpha\\
-% \dk^2
-% \le \frac{\alpha}{\epsilon_g}\frac{\| \nabla m_{c_i}(\xk)\|^2}{\|\nabla m_{c_i}(\xk)\| + 1} \\
-% \dk^2
-% \le \frac{\alpha}{\epsilon_g}\left(\| \nabla m_{c_i}(\xk)\| - 1 + \frac{1}{1 + \| \nabla m_{c_i}(\xk)\|}    \right) \\
-% \left\|\frac{\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu}{\|\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu\|^2} -
-% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\frac{\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu}{\|\nabla m_{c_i}(\xk)\|^2 + \|\epsilon_{g}\dk^2\nu\|^2} -
-% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\frac{\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu}{\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2} -
-% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\frac{(\nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu)\|\nabla m_{c_i}(\xk)\|^2 - (\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\nabla m_{c_i}(\xk)}{(\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|\frac{\epsilon_{g}\dk^2\nu\|\nabla m_{c_i}(\xk)\|^2 - \epsilon_{g}\dk^2\nabla m_{c_i}(\xk)}{(\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|}\\
-% \left\|
-% \frac{\nu\|\nabla m_{c_i}(\xk)\|^2 - \nabla m_{c_i}(\xk)}
-% {(\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2)\|\nabla m_{c_i}(\xk)\|^2}
-% \right\|
-% \le \frac{\alpha}{\epsilon_g \dk |m_{c_i}(\xk)|}\\
-% \left\|
-% \frac{\nu - \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}}
-% {\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2}
-% \right\|
-% \le \frac{\alpha}{\epsilon_g \dk |m_{c_i}(\xk)|}\\
-% \left\|
-% \frac{\|\nabla m_{c_i}(\xk)\|\nu - \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}}
-% {\|\nabla m_{c_i}(\xk)\|^2 + \epsilon_{g}\dk^2}
-% \right\|
-% \le \frac{\alpha\|\nabla m_{c_i}(\xk)\|}{\epsilon_g \dk |m_{c_i}(\xk)|}\\
-% \left\|\frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}\frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|} -
-% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}
-% \right\| \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
-% |\frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}\frac{\|\nabla c_i(\xk)\|}{\|\nabla c_i(\xk)\|} -
-% \frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla m_{c_i}(\xk)\|}
-% | \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
-% |1 - \frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}| \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|}{|m_{c_i}(\xk)|}\\
-% |\|\nabla c_i(\xk)\| - \|\nabla m_{c_i}(\xk)\|| \le \alpha \dk\frac{\|\nabla m_{c_i}(\xk)\|\|\nabla c_i(\xk)\|}{|m_{c_i}(\xk)|}\\
-% \left\|
-% \frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|^2} -
-% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|^2}
-% \right\| \le \frac{\alpha \dk}{|m_{c_i}(\xk)|} \le \frac{\alpha}{\|\nabla m_{c_i}(\xk)\|}\\
-% \left\|
-% \frac{\|\nabla m_{c_i}(\xk)\|}{\|\nabla c_i(\xk)\|}\frac{\nabla c_i(\xk)}{\|\nabla c_i(\xk)\|} -
-% \frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}
-% \right\| \le \alpha\\
+% t_i = (\|r_i\|^2 + \alpha_i t_i)\frac{\alpha_i n_i^TQ^{-1} n_i - n_i^TQ^{-1}r_i}{\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i} \quad \forall 1\le i\le m \\
+% \|r\|^2 = (\|r_i\|^2  + \alpha_i t_i)\frac{\alpha_i r_i^TQ^{-1} n_i - r_i^TQ^{-1}r_i}{\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i} \quad \forall 1\le i\le m \\
+% t_i + \|r_i\|^2 = \|r_i\|^2  + \alpha_i t_i \quad \forall 1\le i\le m \\
+% t_i = \|r_i\|^2  \quad \forall 1\le i\le m \\
+% t_i = \frac 1 \alpha_i \quad \forall 1\le i\le m \\
 % \end{align*}
+
+% We also know that if we let $\bar Q^{-1} =  (n_in_i^T - I)Q^{-1}(n_in_i^T - I)^T$,
+% \begin{align*}
+% g_i(d^{(i)}) = 0 \\
+% \|2 (n_in_i^T - I)d^{(i)}\|^2 = (\alpha_i n_i^Td^{(i)})^2 \\
+% \|2 (n_in_i^T - I)\lambda_i Q^{-1}\left((4n_i^Tn_i - 2I)^T\|r_i\| + \alpha_i n_i\right)\|^2 = (\alpha_i n_i^T\lambda_i Q^{-1}\left((4n_i^Tn_i - 2I)^T\|r_i\| + \alpha_i n_i)\right)^2 \\
+% \|2 (n_in_i^T - I)\lambda_i Q^{-1}\left((4n_i^Tn_i - 2I)^T\|r_i\| + \alpha_i n_i\right)\|^2 = (\alpha_i n_i^T\lambda_i Q^{-1}\left((4n_i^Tn_i - 2I)^T\|r_i\| + \alpha_i n_i)\right)^2 \\
+% A_i^T \lambda_i Q^{-1}A_i = \bar{b_i} \\
+% \lambda_i = \frac {\bar{b_i}}{A_i^T  Q^{-1}A_i} \\
+% \end{align*}
+so that 
+\[
+d^{(i)} = \lambda_i Q^{-1}A_i = \frac {\bar{b_i}}{A_i^T  Q^{-1}A_i}  Q^{-1}A_i \quad \forall 1\le i\le m.
+\]
+
+Because $E \subset P$, we also know that $f(\bar x) \ge 1$ for each $i$. Thus,
+\begin{align*}
+\frac 1 2 \bar x^{T} Q \bar x \ge 1 \\
+\|\bar x \|\bar x^{T} Q \frac{\bar x}{\|\bar x\|} \ge 2 \\
+\|\bar x\| \bar x^{T} \frac{\alpha_i n_i - r_i}{\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i}\ge 2 \\
+\|\bar x\| \bar x^{T} (\alpha_i n_i - r_i)\ge 2\left(\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i \right)\\
+\|\bar x\| (\alpha_i n_i + r_i) (\alpha_i n_i - r_i)\ge 2\left(\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i\right) \\
+\|\bar x\| (\alpha_i^2 - \|r_i\|^2)\ge 2\left(\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i\right) \\
+\alpha_i^2 \|\bar x\| (1 - t^2)\ge 2\left(\alpha^2 n_i^TQ^{-1} n_i - r_i^T Q^{-1}r_i\right) \\
+\alpha_i^2 (1 - t^2)\ge 2\bar x(\alpha_i Q^{-1} n_i - Q^{-1}r_i) \\
+\alpha_i^2 (1 - t^2)\ge 2(r + \alpha_i n_i)(\alpha_i Q^{-1} n_i - Q^{-1}r_i) \\
+\frac 1 2 \alpha_i^2 (1 - t^2)\ge r_i^T(\alpha_i Q^{-1} n_i - Q^{-1}r_i) + \alpha_i n_i^T(\alpha_i Q^{-1} n_i - Q^{-1}r_i)  \\
+\frac 1 2 \alpha_i^2 (1 - t^2)\ge \alpha_i^2 n_i^T Q^{-1} n_i - r_i^TQ^{-1}r_i \\
+\frac 1 2 (1 - t^2) + \frac{1}{\alpha_i^2}r_i^TQ^{-1}r_i \ge n_i^T Q^{-1} n_i \\
+\end{align*}
+% \Longrightarrow \frac 1 2 \left(\alpha_i n_i + r_ i\right)^{T} Q (\alpha_i n_i + r_ i) \ge 1 \\
+% \Longrightarrow \alpha_i \left(\alpha_i n_i + r_ i\right)^{T} Q n_i + \left(\alpha_i n_i + r_ i\right)^{T} Qr_ i \ge 2 \\
+% \Longrightarrow \alpha_i ^2 n_i^{T} Q n_i + \alpha r_ i^{T} Q n_i + \alpha_i n_i^TQr_ i + r_ i^TQr_ i \ge 2 \\
+% \Longrightarrow \alpha_i ^2 n_i^{T} Q n_i + 2\alpha r_ i^{T} Q n_i + r_ i^TQr_ i \ge 2 \\
+
+\end{proof}
+
+% 
+% \|c + t r -  x\|^2
+% 2r^T (c + t r - x) = 0
+% r^Tc + t r^Tr - r^Tx = 0
+% t = r^T(x - c)
+\begin{theorem}
+
+
+
+
+Define 
+\begin{align*}
+\alpha \in (0, 1) \\
+\beta \in (0, 1) \\
+\delta > 1 \\
+\mathcal I = \{1\le i \le m | \quad |m_{c_i}(\xk)| \le \dk\|\nabla m_{c_i}(\xk)\|\} \\
+u = -\nabla \hat m_{c_{\mathcal I}}(\xk)^T\left(\nabla \hat m_{c_{\mathcal I}}(\xk)\nabla \hat m_{c_{\mathcal I}}(\xk)^T\right)^{-1} e\\
+\hat u = \frac {u} {\| u\|}\\
+\theta = -\max_{i \in \mathcal I} \nabla \hat m_{c_{i}}(\xk)^T \hat u \\
+m_{\mathcal I}(\xk) + \nabla m_{\mathcal I}(\xk)^T (x^{\star} - \xk) = 0 \\
+\bar x = x^{\star} + \hat u^T(\xk - x^{\star}) \hat u \\
+x_{\text{hi}} = \min(\bar x + 2\dk\hat u, \xk + \dk e) \\
+x_{\text{low}} = \max(\bar x - 2\dk\hat u, \xk - \dk e) \\
+C_1 = \{x \in \mathbb R^n | \quad x = x^{\star} \alpha^{\star} + ts, \|s\| = 1, s^Tu \le \beta^{\star}, t > 0 \} \\
+R = 2\frac{(e_1 + \hat u)(e_1 + \hat u)^T}{(e_1 + \hat u)^T(e_1 + \hat u)} - \boldsymbol I \\
+f_e(x) = (x - x^{\star} - \|\bar x - x^{\star} \|\hat u)^T\bigg(R^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}R\bigg)(x - x^{\star} - \|\bar x - x^{\star} \|\hat u) - \frac 1 2 r^2 \\
+E = \{x \in \mathbb R^n | f(x) \le 0\} \\
+\end{align*}
+
+For sufficiently small $\dk$, $E \subset B_{\infty}(\xk, \dk) \cap F$.
+
+% C_2 = \{x = (t, s)^T \in \mathbb R^n, t \in \mathbb R, s \in \mathbb R^{n-1} |\quad \|s\| \le a t \} \\
+
+\end{theorem}
+
+\begin{proof}
+
+Fix $i$, and let $y \in C_1$.
+\begin{align*}
+\hat g = \frac {\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} \\
+v = \xk - \frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} \hat g \\
+y^1 = y - v + \alpha \dk^{\frac 1 2} \hat g \\
+t_y = \|y^1\| \\
+s_y = \frac{y^1}{\|y^1\|}
+\end{align*}
+so that
+\begin{align*}
+y = v - \alpha \dk^{\frac 1 2} \hat g + y - v + \alpha \dk^{\frac 1 2} \hat g = v - \alpha \dk^{\frac 1 2} \hat g + \|y^1\|\frac{y^1}{\|y^1\|} = v - \alpha \dk^{\frac 1 2} \hat g + t_ys_y 
+\end{align*}
+
+We know:
+\begin{align*}
+C_1 = \{x \in \mathbb R^n | \quad x = x^{\star} \alpha^{\star} + ts, \|s\| = 1, s^Tu \le \beta^{\star}, t > 0 \} \\
+\end{align*}
+To show that $y \in C_i$ where
+\begin{align*}
+C_i = \left\{x | x = v - \alpha\dk^{\frac 1 2}\hat g + ts, \|s\| = 1, t>0, -\hat g^Ts\ge\beta\dk^{2} \right\} \\
+\end{align*}
+we need to show
+\begin{align}
+-\hat g ^T y^1 \le \beta \dk^{\frac 1 2}\|y^1\|.
+\end{align}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \nabla m_{c_i}(\xk)
+
+
+Now,
+\begin{align*}
+m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T (v - \xk) \\
+=m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T (\xk - \frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} \hat g - \xk) \\
+=m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T (- \frac {m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} \frac {\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|}) \\
+=m_{c_i}(\xk) - m_{c_i}(\xk) \frac {\|\nabla m_{c_i}(\xk)\|^2}{\|\nabla m_{c_i}(\xk)\|^2} = 0 \\
+\end{align*}
+
+subtract from
+\begin{align*}
+m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T (v - \xk) \\
+m_{c_i}(\xk) + \nabla m_{c_i}(\xk)^T (x^{\star} - \xk) = 0 \\
+\nabla m_{c_i}(\xk)^T (x^{\star} - v) = 0 \\
+\hat g^T (x^{\star} - v) = 0 \\
+\frac 1 2 \alpha^{\star} \hat g^T\hat u \ge \alpha \dk^{\frac 1 2} \\
+\theta \ge - \hat g^T\hat u \\ 
+\hat g^T (x^{\star} - v) = 0 \\
+\end{align*}
+
+
+\begin{align*}
+x^{\star} + \alpha^{\star}\dk^{\frac 1 2} + s_1, \hat u^Ts_1 \le \dk^2 \beta^{\star} \\
+v + \alpha \dk^{\frac 1 2} + s_2, \hat g^T s_2 \le \dk^2 \beta \\
+\end{align*}
+
+\begin{align*}
+\hat g^T (x^{\star} - v) = 0 \\
+\end{align*}
+
+Suppose that $s_1$ is such that $\hat u^Ts_1 \ge \dk^2 \beta^{\star}$.
+\begin{align*}
+s_2 = (x^{\star} + \alpha^{\star}\dk^{\frac 1 2}\hat u + s_1) - (v - \alpha \dk^{\frac 1 2}\hat g) \\
+-\hat g^T \left((x^{\star} + \alpha^{\star}\dk^{\frac 1 2}\hat u + s_1) - (v - \alpha \dk^{\frac 1 2}\hat g)\right) \stackrel{?}{\ge} \beta\dk^{2}\\
+-\hat g^T \left(\alpha^{\star}\dk^{\frac 1 2}\hat u + s_1 + \alpha \dk^{\frac 1 2}\hat g\right) \stackrel{?}{\ge} \beta\dk^{2}\\
+\end{align*}
+
+
+
+
+
+\begin{align*}
+-\hat g^T \left(\alpha^{\star}\dk^{\frac 1 2}\hat u + \alpha \dk^{\frac 1 2}\hat g\right) \ge 0 \\
+-\hat g^T \left(\alpha^{\star}\hat u + \alpha\hat g\right) \ge 0 \\
+-\alpha^{\star}\hat g^T\hat u - \alpha \ge 0 \\
+\alpha^{\star}\hat g^T\hat u + \alpha \le 0 \\
+\alpha \le -\alpha^{\star}\hat g^T\hat u \\
+\alpha \le \alpha^{\star}\theta \\
+\end{align*}
+
+
+\begin{align*}
+\hat u^T s_1 \ge \beta^{\star} \dk^2  \\
+-\hat g^T s_1 \ge \beta \dk^2 \\
+-\hat u^T\hat g^T \ge 0
+\end{align*}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\vspace{20cm}
+\begin{align*}
+v = \frac{({u^2}^Tu^1 - \beta )u^2 +(\beta- 1)u^1 }{{u^2}^Tu^1 - 1} \\
+{u^2}^Tv = \beta \\
+\end{align*}
+
+
+\begin{align*}
+u^2 + t (u^1 - u^2) \\
+{u^2}^T\left(u^2 + t (u^1 - u^2)\right) = \beta\\
+1 + t ({u^2}^Tu^1 - 1) = \beta\\
+t = \frac{\beta - 1}{{u^2}^Tu^1 - 1}\\
+v = u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2) \\
+= \frac{({u^2}^Tu^1 - 1)u^2 + (\beta - 1)(u^1 - u^2) }{{u^2}^Tu^1 - 1} \\
+= \frac{{u^2}^Tu^1u^2 - u^2 + \beta(u^1 - u^2) - (u^1 - u^2) }{{u^2}^Tu^1 - 1} \\
+= \frac{({u^2}^Tu^1 - \beta )u^2 +(\beta- 1)u^1 }{{u^2}^Tu^1 - 1} \\
+\end{align*}
+
+\begin{align*}
+{u^2}^Tv = {u^2}^T(u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)) \\
+=1 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} ({u^2}^Tu^1 - 1) = \beta \\
+\end{align*}
+
+
+\begin{align*}
+{u^2}^Tv = {u^2}^T \frac{({u^2}^Tu^1 - \beta )u^2 +(\beta- 1)u^1 }{{u^2}^Tu^1 - 1} \\
+= \frac{{u^2}^Tu^1 - \beta  +(\beta- 1){u^2}^Tu^1 }{{u^2}^Tu^1 - 1}
+= \frac{- \beta  +\beta{u^2}^Tu^1 }{{u^2}^Tu^1 - 1} = \beta \\
+\end{align*}
+
+
+\begin{align*}
+\|u^1 - {u^2}^Tu^1 u^2\|^2 = 1 + ({u^2}^Tu^1)^2 - 2 ({u^2}^Tu^1)^2 \\
+= 1 - ({u^2}^Tu^1)^2 \\
+\|u^1 - {u^2}^Tu^1 u^2\| = \sqrt{1 - ({u^2}^Tu^1)^2} \\
+\end{align*}
+
+\begin{align*}
+\|\beta u^2 + \gamma (v - \beta u^2)\|^2 = 1 \\
+\beta^2 + \gamma^2 \|v - \beta u^2\|^2 = 1 \\
+\gamma^2 \|v - \beta u^2\|^2 = 1 - \beta^2 \\
+\gamma^2 = \frac{1 - \beta^2}{\|v - \beta u^2\|^2} \\
+\gamma = \frac{\sqrt{1 - \beta^2}}{\|v - \beta u^2\|} \\
+\end{align*}
+\begin{align*}
+\frac{({u^2}^Tu^1 - \beta )u^2 +(\beta- 1)u^1 }{{u^2}^Tu^1 - 1} - \beta u^2 \\
+= \frac{({u^2}^Tu^1 - \beta )u^2 +(\beta- 1)u^1 - ({u^2}^Tu^1 - 1 )\beta u^2 }{{u^2}^Tu^1 - 1} \\
+= \frac{{u^2}^Tu^1u^2 - \beta u^2 +\beta u^1- u^1 - {u^2}^Tu^1\beta u^2 + \beta u^2  }{{u^2}^Tu^1 - 1} \\
+= \frac{(\beta - 1)u^1 - (\beta - 1){u^2}^Tu^1 u^2 }{{u^2}^Tu^1 - 1} \\
+= \frac{(\beta - 1)(u^1 - {u^2}^Tu^1 u^2)}{{u^2}^Tu^1 - 1} \\
+\end{align*}
+
+\begin{align*}
+\frac{(\beta- 1)(u^1 - u^2) }{{u^2}^Tu^1 - 1} \\
+\end{align*}
+
+\begin{align*}
+\beta u^2 + \gamma (v - \beta u^2) \\
+= \beta u^2 + \frac{\sqrt{1 - \beta^2}}{\|v - \beta u^2\|} (v - \beta u^2) \\
+= \beta u^2 + \sqrt{1 - \beta^2} \frac{u^1 - {u^2}^Tu^1 u^2 }{\|u^1 - {u^2}^Tu^1 u^2\|} \\
+= \beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 ) \\
+\end{align*}
+
+
+
+\begin{align*}
+{u^1}^T(\beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 )) \\
+=\beta {u^1}^Tu^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (1 - ({u^2}^Tu^1)^2 ) \\
+=\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}  \\
+\end{align*}
+
+\begin{align*}
+{u^2}^T\frac{u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)}{\|u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)\|} \\
+= \frac{1 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} ({u^2}^Tu^1 - 1)}{\|u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)\|} = \\
+\end{align*}
+\begin{align*}
+\alpha = {u^1}^T\frac{u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)}{\|u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)\|} \\
+=\frac{{u^1}^Tu^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (1 - {u^1}^Tu^2)}{\|u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\|u^2 + \frac{\beta - 1}{{u^2}^Tu^1 - 1} (u^1 - u^2)\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\|\frac{u^2({u^2}^Tu^1 - 1) + (\beta - 1) (u^1 - u^2)}{{u^2}^Tu^1 - 1}\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\|\frac{{u^2}^Tu^1u^2 - u^2 + (\beta - 1)u^1 - (\beta - 1)u^2}{{u^2}^Tu^1 - 1}\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\|\frac{{u^2}^Tu^1u^2 - u^2 + \beta u^1 - u^1 - \beta u^2 + u^2}{{u^2}^Tu^1 - 1}\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\|\frac{({u^2}^Tu^1 - \beta)u^2 + (\beta - 1)u^1}{{u^2}^Tu^1 - 1}\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\|\frac{({u^2}^Tu^1 - 1)u^2 + (\beta-1) (u^1 - u^2)}{{u^2}^Tu^1 - 1}\|}\\
+=\frac{({u^1}^Tu^2 - \beta + 1)({u^2}^Tu^1 - 1)}{\|({u^2}^Tu^1 - \beta)u^2 + (\beta - 1)u^1\|}\\
+=\frac{{u^1}^Tu^2 - \beta + 1}{\sqrt{(2\beta - 1){u^2}^Tu^1 -2\beta^2 + 2 \beta  - 1 }}\\
+\end{align*}
+\begin{align*}
+\|(\beta - 1)u^1-(\beta - {u^2}^Tu^1)u^2\|^2 = (\beta - 1)^2 + (\beta - {u^2}^Tu^1)^2 - 2(\beta - {u^2}^Tu^1)(\beta - 1){u^1}^Tu^2 \\   
+ = \beta^2 - 2\beta + 1 + \beta^2 - 2 \beta {u^2}^Tu^1 +({u^2}^Tu^1)^2 - 2((\beta - 1)\beta - (\beta - 1){u^2}^Tu^1){u^1}^Tu^2 \\   
+ = \beta^2 - 2\beta + 1 + \beta^2 - 2 \beta {u^2}^Tu^1 + ({u^2}^Tu^1)^2 - 2{u^1}^Tu^2(\beta^2 - \beta - \beta({u^2}^Tu^1) + ({u^2}^Tu^1)) \\ 
+ = \beta^2 - 2\beta + 1 + \beta^2 - 2 \beta {u^2}^Tu^1 + ({u^2}^Tu^1)^2 - 2(\beta^2{u^1}^Tu^2 - \beta{u^1}^Tu^2 - \beta({u^2}^Tu^1)^2 + ({u^2}^Tu^1)^2) \\ 
+ = 2\beta^2 - 2\beta + 1 - 2 \beta {u^2}^Tu^1 + ({u^2}^Tu^1)^2 - 2\beta^2{u^1}^Tu^2 +2 \beta{u^1}^Tu^2 +2 \beta({u^2}^Tu^1)^2 -2 ({u^2}^Tu^1)^2 \\   
+ = (2\beta^2 - 2\beta + 1)  -2\beta^2{u^2}^Tu^1 + (2 \beta  - 1)({u^2}^Tu^1)^2   \\  
+ = (2\beta^2 - 2\beta + 1)  +(-2\beta^2 + 2 \beta  - 1){u^2}^Tu^1 - (2 \beta  - 1){u^2}^Tu^1 + (2 \beta  - 1)({u^2}^Tu^1)^2   \\
+ = ({u^2}^Tu^1 - 1)(-2\beta^2 + 2 \beta  - 1 + (2\beta - 1){u^2}^Tu^1) \\
+ =  ({u^2}^Tu^1 - 1)((2\beta - 1){u^2}^Tu^1 - 2\beta^2 +  2\beta  - \frac 1 2 - \frac 1 2 ))\\
+ =  ({u^2}^Tu^1 - 1)((2\beta - 1){u^2}^Tu^1 +(2\beta - 1)(-\beta + \frac 1 2) - \frac 1 2 ))\\
+ =  (2\beta - 1)({u^2}^Tu^1 - 1)({u^2}^Tu^1 +(-\beta + \frac 1 2) - \frac 1 {2(2\beta - 1)} ))\\
+\end{align*}
+
+
+
+\begin{align*}
+\|\beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 ) - \beta u^2\| =
+\sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}}\|u^1 - {u^2}^Tu^1 u^2\|\\
+= \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}}\sqrt{{1 - ({u^2}^Tu^1)^2}}\\
+= \sqrt{{1 - \beta^2}}\\
+\end{align*}
+\begin{align*}
+\left\|\beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 ) - \left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right) u^1\right\|^2 = \\
+= 1 + 
+\left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right)^2 \\
+ - 2(\beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 ))^T\left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right) u^1\\
+= 1 + 
+\left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right)^2 
+ - 2\left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right)^2\\
+= 1 - \left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right)^2 \\
+= 1 - \left(
+(\beta {u^1}^Tu^2)^2
++ 2\beta {u^1}^Tu^2\sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}
++ (1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)
+\right) \\
+= 1 + \beta^2 - \left(
+2(\beta {u^1}^Tu^2)^2
++ 2\beta {u^1}^Tu^2\sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}
++ \left(1 - ({u^2}^Tu^1)^2\right)
+\right) \\
+= \beta^2 - ({u^2}^Tu^1)\left(
+2\beta {u^1}^Tu^2
++ 2\sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)} - {u^2}^Tu^1
+\right) \\
+= \beta^2 - 2({u^2}^Tu^1)\left(
+(\beta - 1) {u^1}^Tu^2
++ \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}
+\right) \\
+\end{align*}
+
+
+\begin{align*}
+{u^2}^Tu^1\sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} \ge \beta\\
+{u^2}^Tu^1\sqrt{1 - \beta^2} \ge \beta\sqrt{1 - ({u^2}^Tu^1)^2} \\
+({u^2}^Tu^1)^2(1 - \beta^2) \ge \beta^2(1 - ({u^2}^Tu^1)^2) \\
+({u^2}^Tu^1)^2 \ge \beta^2 \\
+{u^2}^Tu^1 \ge \beta
+\end{align*}
+
+
+
+\begin{theorem}
+Given $u^1, u^2 \in \mathbb R^n$, $\|u^1\| = \|u^2\|= 1$, $\beta >0$, with ${u^1}^Tu^2 > \beta$ define
+\begin{align*}
+B = \{x\in\mathbb R^n | {u^2}^Tx \ge \beta\|x\|\}, \quad
+S = \left\{x\in\mathbb R^n \bigg| {u^1}^Tx \ge \left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right)\|x\| \right\}. 
+\end{align*}
+We have $S \subseteq B$.
+\end{theorem}
+
+
+\begin{proof}
+
+Consider the set of points 
+\begin{align*}
+U = \left\{x \in \mathbb R^n | {u^2}^Tx \le \beta, {u^1}^Tx \ge \beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)} \right\}.
+\end{align*}
+
+Note that
+\begin{align*}
+x^{\star} = \beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 )
+\end{align*}
+is on the boundary of of $U$ because
+
+\begin{align*}
+{u^1}^T\left(\beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 )\right) = 
+\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)} \\
+{u^2}^T\left(\beta u^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} (u^1 - {u^2}^Tu^1 u^2 )\right) = 
+\beta + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} ({u^2}^Tu^1 - {u^2}^Tu^1 ) = \beta.
+\end{align*}
+$U$ is the intersection of two half-spaces, and any other point in $U$ can be written in the form $x^{\star} + v$ where ${u^1}^Tv \ge 0, {u^2}^Tv \le 0$.
+But then if $v \ne 0$,
+\begin{align*}
+{v}^Tx^{\star} = 
+\left(\beta {v}^Tu^2 + \sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} ({v}^Tu^1 - {u^2}^Tu^1 {v}^Tu^2 )\right) > 0
+\end{align*}
+because ${u^1}^Tu^2 \ge \beta \Longrightarrow {u^2}^Tu^1\sqrt{\frac{1 - \beta^2}{1 - ({u^2}^Tu^1)^2}} \ge \beta$.
+This implies that $\|x^{\star} + v\| > \|x^{\star}\| = 1$.
+Now, if $x \in S$ and $x \not \in B$, then $\frac{x}{\|x\|} \in U$.
+because $\frac{\|x\|}{\|x\|} = 1$, $x = x^{\star} \in B$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Let $x \in \left\{x\in\mathbb R^n \bigg| {u^1}^Tx \ge \beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\|x\| \right\}$, and define $\hat x = \frac{x}{\|x\|}$, $r = \hat x - {u^1}^T\hat x u^1$ so that $\hat x = {u^1}^T\hat x u^1 + r$.
+Now,
+\begin{align*}
+\|r\|^2 = \|\hat x - {u^1}^T\hat x u^1\|^2 = \|\hat x\|^2 + |{u^1}^T\hat x|\|{u^1}\|^2 \\
+= 1 + 
+\end{align*}
+
+
+
+
+Let $x = t_1(u^1 + r^1)=t_2(u^2+r^2)\in\mathbb R^n$, ${r^1}^Tu^1 = {r^2}^Tu^2 = 0$ be such that 
+\begin{align*}
+{u^1}^Tx\ge\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\|x\| \\
+\frac{1}{\|u^1 + r^1\|}\ge\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)} \\
+\frac{{u^1}^Tu^2 + {u^1}^Tr^2}{\|u^2 + r^2\|}\ge\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)} \\
+\end{align*}
+Then 
+\begin{align*}
+{u^2}^T\frac x {\|x\|} = \frac{{u^2}^Tu^1 + {u^2}^Tr^1}{\|u^1 + r^1\|} = \frac{1}{\|u^2+ r^2\|} \\
+\ge (1+ {u^2}^Tr^1)\left(\beta {u^1}^Tu^2 + \sqrt{(1 - \beta^2)\left(1 - ({u^2}^Tu^1)^2\right)}\right) \\
+\end{align*}
+
+
+\end{proof}
+
+
+
+\vspace{20cm}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\vspace{10cm}
+
+
+\begin{align*}
+\max_{\|x\|^2 = 1, u^Tx = a}{g^Tx} \\
+\end{align*}
+
+
+\begin{align*}
+-g = \lambda u + 2\mu x \\
+-1 = \lambda g^Tu + 2\mu g^Tx \\
+-u^Tg = \lambda + 2\mu u^Tx \\
+-g^Tx = \lambda u^Tx + 2\mu
+\end{align*}
+
+
+\begin{align*}
+2\mu = -g^Tx - \lambda u^Tx \\
+\lambda = 2\mu u^Tx -u^Tg \\
+\lambda = (-g^Tx - \lambda u^Tx) u^Tx -u^Tg \\
+\lambda = (-g^Tx - \lambda a) a -u^Tg \\
+(1 + a^2) \lambda = -ag^Tx -u^Tg \\
+\lambda = -\frac{ag^Tx +u^Tg}{1 + a^2}
+\end{align*}
+
+
+\begin{align*}
+-1 = -\frac{ag^Tx +u^Tg}{1 + a^2}g^Tu + (-g^Tx +\frac{ag^Tx +u^Tg}{1 + a^2} u^Tx)g^T x \\
+-1 = -\frac{ag^Tx +u^Tg}{1 + a^2}g^Tu + (-g^Tx +\frac{ag^Tx +u^Tg}{1 + a^2} a)g^T x \\
+-(1 + a^2) = -(ag^Tx +u^Tg)g^Tu + (-g^Tx(1 + a^2) +(ag^Tx +u^Tg) a)g^T x \\
+-(1 + a^2) = -(ag^Tx +u^Tg)g^Tu + -g^Tx(1 + a^2)g^T x +(ag^Tx +u^Tg) ag^T x \\
+-1 - a^2 = -ag^Tug^Tx -u^Tgg^Tu + -(g^Tx)^2 -(g^Tx)^2a^2 +ag^T xag^Tx +u^Tgag^T x  \\
+0=1 + a^2 -ag^Tu(g^Tx) - (g^Tu)^2 -(g^Tx)^2 -(g^Tx)^2a^2 +a^2(g^T x)^2 +u^Tga(g^T x)  \\
+(-1 -a^2 + a^2)(g^Tx)^2 + (-ag^Tu -au^Tg)g^Tx + (1 + a^2- (g^Tu)^2)= 0 \\
+(g^Tx)^2 + 2ag^Tu(g^Tx) - (1 + a^2- (g^Tu)^2)= 0 \\
+\frac{1}{2}\left(-2ag^Tu\pm\sqrt{4a^2(g^Tu)^2 + 4(1 + a^2- (g^Tu)^2)}\right)
+\end{align*}
+
+
+\begin{align*}
+(tg)^Tx \\
+u^T(tg) = \alpha_1 \\
+t = \frac{\alpha_1}{u^Tg} \\
+(\frac{\alpha_1}{u^Tg}g)^T() \\
+\end{align*}
+
+
+\begin{align*}
+u^Tx = \alpha_1 \\
+x = u\alpha_1 + n, n^Tu = 0 \\
+g^Tx = g^Tu  \alpha_1 + g^Tn \\
+\end{align*}
+
+\vspace{10cm}
+
+
+
+
+
+
+
+
+We know that
+\begin{align*}
+f_e(y) \le 0 \\
+\Longrightarrow (y - x^{\star} - \|\bar x - x^{\star} \|\hat u)^T\bigg(R^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}R\bigg)(y - x^{\star} - \|\bar x - x^{\star} \|\hat u) \le \frac 1 2 r^2 \\
+f_e(y) \le 0 \\
+\Longrightarrow ((y - x^{\star})R^T - \|\bar x - x^{\star} \|e_1)^T\bigg(\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}\bigg)(R(y - x^{\star}) - \|\bar x - x^{\star} \|e_1) \le \frac 1 2 r^2 \\
+\end{align*}
+
+Let $y \in E$, so that $y = $.
+Then
+
+
+
+Assume $\mathcal I \ne \emptyset $, otherwise we could simply take our ellipsoid as $B_2(\xk, \dk)$.
+\color{red} Assume the rows of $\nabla m_{c_{\mathcal I}}$ are linearly independent \color{black}.
+Notice that everything is defined:
+\begin{itemize}
+    \item $\bar x \in B_{\infty}(\xk, \dk)$
+    \item $x^{\star}$ is unique.
+\end{itemize}
+
+First, we show that $C_1$ is feasible with respect to the active constraints at $\xk$,
+by letting $y = \xk + t\hat u + s\in C_1$ as in \ref{s_less_t} and $i \in \mathcal A$ be arbitrary.
+With these definitions, the active constraints are satisified at $y$:
+\begin{align*}
+A_{i}y - b_{i} = A_{i}(t\hat u + s) = A_{i}s + t A_{i}n \le \|s\| - \alpha t \le 0.
+\end{align*}
+
+Now, for an arbitrary $\delta > 0$, let 
+$f(x): \mathbb R^n \to \mathbb R$ be defined by 
+\begin{align*}
+f(x) = (x - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(x - \delta e_1) - \frac 1 2 \delta^2,
+\end{align*} 
+and consider the ellipsoid $E_1 = \{x | f(x) \le 0\}$.
+We will show that $E_1 \subseteq C_2$.
+Letting $t \in \mathbb R$ be arbitrary, we see that
+\begin{align*}
+2\big(t - \frac {\delta} 2\big)^2 \ge 0
+\Longrightarrow 2t\delta - \frac 1 2 \delta^2 \le 2t^2 
+\Longrightarrow \frac 1 2 \delta^2 - (t - \delta)^2 \le t^2. 
+\end{align*}
+
+% \Longrightarrow \frac 1 2 \delta^2 -t^2  + 2t\delta - \delta^2 \le t^2 \\
+% \Longrightarrow 0 \le t^2 - t\delta + \frac 1 4 \delta^2
+%  \Longrightarrow 0 \le 2t^2 - 2t\delta + \frac 1 2 \delta^2\\
+If we further suppose that $x = (t, s)^T \in E_1$ for some $s \in \mathbb R^{n-1}$, we see that
+\begin{align*}
+(x - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(x - \delta e_1) \le \frac 1 2 \delta^2 \\
+\Longrightarrow (t - \delta)^2 + \frac {1} {\alpha^2} \|s\|^2 \le \frac 1 2 \delta^2 \\
+\Longrightarrow \|s\|^2 \le \alpha^2 \big(\frac 1 2 \delta^2 - (t - \delta)^2\big) \le \alpha^2t^2\\
+\Longrightarrow \|s\| \le \alpha t\\
+\end{align*}
+so that $x \in C_2$.
+Also, note that by scaling the ellipse by a factor of $2$, the ellipsoid
+
+\begin{align*}
+\bigg \{x \bigg | (x - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(x - \delta e_1) \le \delta^2 \bigg\},
+\end{align*}
+includes the origin:
+\begin{align*}
+(0 - \delta e_1)^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}(0 - \delta e_1) = \delta^2 \le \delta^2.
+\end{align*}
+
+All that remains is to translate this ellipsoid by $\xk$ and rotate $\hat u$ into $e_1$ with the rotation matrix $R \in SO(n)$:
+which satisfies
+\begin{align*}
+Re_1 = \hat u, \quad
+R\hat u = e_1, \quad
+\det(R) = 1.
+\end{align*}
+
+
+
+Thus, with $Q = R^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}R$, $c = \xk - \delta \hat u$, $\epsilon = \delta^2$ we have constructed a feasible ellipse
+\begin{align*}
+E_2 = \bigg \{x \bigg | (x - \xk - \delta \hat u)^T\bigg(R^T\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \alpha^{-2} \boldsymbol I \\
+\end{bmatrix}R\bigg)(x - \xk - \delta \hat u) \le \frac 1 2 \delta^2 \bigg\},
+\end{align*}
+for sufficiently small $\delta$, that can be scaled by $2$ to include $\xk$.
+Note that the condition number of this matrix is $\sigma(Q) = \frac{\max\{1, \alpha^{-2}\}}{\min\{1, \alpha^{-2}\}}$,
+as the condition number is not affected by rotations.
+
+
+
 
 
 \end{proof}
