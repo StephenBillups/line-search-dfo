@@ -8,6 +8,7 @@
 \newcommand{\huk}{{{\hat u}^{(k)}}}
 \newcommand{\ask}{{\alpha^{(\star, k)}}}
 \newcommand{\bsk}{{\beta^{(\star, k)}}}
+\newcommand{\bs}{{\beta^{\star}}}
 \newcommand{\fcko}{{\mathcal {F}^{\text{outer}}_k}}
 \newcommand{\fcki}{{\mathcal {F}^{\text{inner}}_k}}
 \newcommand{\rn}{{\mathbb R^{n}}}
@@ -24,34 +25,62 @@ Then for all $1 \le i \le m$, $k = 1, \ldots$, define the following whenever the
 \gik = \nabla m_{c_i}(\xk) \\ 
 \hgik = \frac{\gik}{\|\gik\|} \\
 \zik = \xk - \frac{m_{c_i}(\xk)}{\|\gik\|}\hgik \\
-\fik = \left\{x \in \rk | x = z^i - \alpha \dk^{\frac 3 2}\hgik + t s,t > 0, \|s\| = 1, -s^T\hgik \ge \beta \dk^2\right\} \\
+\fik = \left\{x \in \rn | x = \xk + \left(1 - \alpha\dk^{\frac 3 2}\right)\left(\zik - \xk\right) + t s,t > 0, \|s\| = 1, -s^T\hgik \ge \beta \dk^{\frac 3 2 }\right\} \\
 \iik = \{1\le i \le m | \zik \in B_{\infty}(\xk, \dk) \} \\
 \uk = -\nabla \hat m_{c_{\mathcal I}}(\xk)^T\left(\nabla \hat m_{c_{\mathcal I}}(\xk)\nabla \hat m_{c_{\mathcal I}}(\xk)^T\right)^{-1} e\\
 \huk = \frac {\uk} {\| \uk\|}\\
 \theta^{\text{min}}_k = \min_{i \in \mathcal I} (-\hgik)^T \huk \\
 \theta^{\text{max}}_k = \max_{i \in \mathcal I} (-\hgik)^T \huk \\
-m_{\mathcal I}(\xk) + \nabla m_{\mathcal I}(\xk)^T (\xsk - \xk) = 0 \\
-\ask = \frac{1 + \alpha}{\theta^{\text{min}}_k} \\
-\bsk = \beta\dk^2 \theta^{\text{max}}_k + \sqrt{(1 - \dk^4\beta^2)\left(1 - (\theta^{\text{max}}_k) ^2\right)} \\
-\fcko = \{x \in \rn | \quad x = \xsk + \ask\dk^{\frac 1 2}\huk + ts, t > 0, \|s\| = 1, s^T\huk \ge \bsk \} \\
+\theta^{\text{min}} = \liminf_{k\to\infty} \theta^{\text{min}}_k\\
+\theta^{\text{max}} = \limsup_{k\to\infty} \theta^{\text{max}}_k\\
+\bs = \sqrt{ 1 - (\theta^{\text{max}}_k)^2}\\
+\bsk = \beta\dk^{\frac 3 2} \theta^{\text{max}}_k + \sqrt{(1 - \dk^3\beta^2)\left(1 - (\theta^{\text{max}}_k) ^2\right)} \\
 \fcki = \{x \in \rn | \quad x = \xk + ts, t > 0, \|s\| = 1, s^T\huk \ge \bsk \} \\
-\bxk = \xsk + (\huk)^T(\xk - \xsk)\huk\\
 g_{\text{low}} \le \|\gik\| \le g_{\text{hi}} \\
+h_{\text{low}} \le \|\nabla^2m_{c_i}(x)\| \le h_{\text{hi}} \\
 f_e(\delta, r, \theta; x) = (x - \delta e_1)^T\bigg(\begin{bmatrix}
 1 & \boldsymbol0^T \\
 \boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
 \end{bmatrix}\bigg)(x - \delta e_1) - \frac 1 2 r^2 \\
 R = 2\frac{(e_1 + \huk)(e_1 + \huk)^T}{(e_1 + \huk)^T(e_1 + \huk)} - \boldsymbol I \\
+t_k = \max_{\xk + t\huk \in B_{\infty}(\xk, \dk)} t \\
+E_k = \{x \in \rn | f_e\left(\frac 1 2 t_k, \frac 1 2 t_k, \bsk; R(x - \xk)\right) \le 0\}
 \end{align*}
+
+
+% \fcko = \{x \in \rn | \quad x = \xsk + \ask\dk^{\frac 1 2}\huk + ts, t > 0, \|s\| = 1, s^T\huk \ge \bsk \} \\
+% \ask = \frac{1 + \alpha}{\theta^{\text{min}}_k} \\
+% \bxk = \xsk + (\huk)^T(\xk - \xsk)\huk\\
+% m_{\mathcal I}(\xk) + \nabla m_{\mathcal I}(\xk)^T (\xsk - \xk) = 0 \\
 
 \subsection{Derivation of feasible ellipse}
 
 
 \begin{theorem}
-For suffiently small $\dk$, the point $\xsk$ is defined and unique.
+We have $\theta^{\text{min}} > 0$ and $\theta^{\text{max}} < 1$.
 \end{theorem}
 
 \begin{proof}
+Because the constraints are uniformly linearly independent, we know that there is an $\epsilon > 0$ such that for all $1 \le i, j \le m$, $i\ne j$ we have 
+\begin{align*}
+1 - (\hgik)^T \hat g^{(j, k)} \ge \epsilon \\
+\end{align*}
+\color{red}
+This (somehow) means that 
+\begin{align*}
+\left(\nabla \hat m_{c_{\mathcal I}}(\xk)\nabla \hat m_{c_{\mathcal I}}(\xk)^T\right)^{-1} e \ge 0
+\end{align*}
+and $\huk$ is written as a linear combination of the negative gradients.
+\begin{align*}
+1 - (\huk)^T (-\hat g^{(j, k)}) \ge \epsilon_2 \\
+\Longrightarrow (\huk)^T \hat g^{(j, k)} \le 1 - \epsilon
+\end{align*}
+Need:
+\begin{align*}
+(-\hgik)^T \huk \ge \epsilon\\
+\theta^{\text{min}}_k \ge \epsilon \\
+\end{align*}
+\color{black}
 \end{proof}
 
 
@@ -114,8 +143,78 @@ There exists a $\nu \in \rn$, $\|\nu\|=1$ such that
 \begin{align*}
 \nabla c_i(\xk) = \nabla m_{c_i}(\xk) + \epsilon_{g}\dk^2\nu.
 \end{align*}
+We will let $z^{\star} = \xk + \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik$.
+Observe that
+\begin{align*}
+c_i(\xk) + \nabla c_i(\xk)^T (z^{\star} - \xk) = c_i(\xk) + \nabla c_i(\xk)^T\left( \xk - \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik - \xk\right) \\
+= c_i(\xk) - \nabla c_i(\xk)^T\left(\frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik\right) = c_i(\xk) - \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\nabla c_i(\xk)^T\gik = 0. \\
+\end{align*}
+We also know that,
+\begin{align*}
+c_i(\xk) + \nabla c_i(\xk)^T (\xk - 0 \gik -\xk) \le 0
+\end{align*}
+because $\xk$ is feasible.
+Thus, in order to show that 
+\begin{align*}
+c_i(\xk) + \nabla c_i(\xk)^T\left(\xk + \left(1 - \dk^{\frac 3 2 }\alpha\right)\left(\zik - \xk\right) - \xk\right) \le 0 \\
+c_i(\xk) + \nabla c_i(\xk)^T\left(\xk + \left(1 - \dk^{\frac 3 2 }\alpha\right)\left(\xk - \frac{m_{c_i}(\xk)}{\|\gik\|}\hgik - \xk\right) - \xk\right) \le 0 \\
+c_i(\xk) + \nabla c_i(\xk)^T\left(\xk - \left(1 - \dk^{\frac 3 2 }\alpha\right)\frac{m_{c_i}(\xk)}{\|\gik\|^2}\gik - \xk\right) \le 0
+\end{align*}
+we require
+\begin{align*}
+\left(1 - \dk^{\frac 3 2 }\alpha\right)\frac{-m_{c_i}(\xk)}{\|\gik\|^2} \le \frac{-c_i(\xk)}{\nabla c_i(\xk) ^T \gik} \\
+\left(1 - \dk^{\frac 3 2 }\alpha\right)\nabla c_i(\xk) ^T \gik \le \|\gik\|^2  \\
+\dk^{\frac 3 2 }\alpha \nabla c_i(\xk) ^T \gik \ge \nabla c_i(\xk) ^T \gik - \|\gik\|^2 \\
+\dk^{\frac 3 2 }\alpha \left(\gik + \epsilon_{g}\dk^2\nu\right) ^T \gik \ge (\gik)^T\left(\nabla c_i(\xk) -\gik\right) \\
+\dk^{\frac 3 2 }\alpha \left(\|\gik\|^2 + \epsilon_{g}\dk^2\nu^T\gik\right)  \ge \epsilon_{g}\dk^2(\gik)^T\nu \\
+\alpha\|\gik\|^2 + \alpha\epsilon_{g}\dk^2\nu^T\gik  \ge \epsilon_{g}\dk^{\frac 1 2}(\gik)^T\nu \\
+\alpha\|\gik\|^2 \ge \epsilon_{g}(\gik)^T\nu\left(\dk^{\frac 1 2} - \alpha\dk^2\right)  \\
+\alpha\|\gik\| \ge \epsilon_{g}(\hgik)^T\nu\left(\dk^{\frac 1 2} - \alpha\dk^2\right)  \\
+\end{align*}
+This is true whenever $\dk$ is sufficiently small that
+\begin{align*}
+\dk^{\frac 1 2} - \alpha\dk^2 \le \frac{\alpha\|g_{\text{low}} \|}{\epsilon_{g}} \le \frac{\alpha\|\gik\|}{\epsilon_{g}}. \\
+\end{align*}
 
 
+We have just shown that, 
+\begin{align*}
+\xk + \left(1 - \dk^{\frac 3 2 }\alpha\right)\left(\zik - \xk\right)
+\end{align*}
+is feasible with respect to the linearized constraints for sufficiently small $\dk$.
+
+Also, if $-s^T \hgik \ge \beta \dk^{\frac 3 2}$ where $\|s\| = 1$, then for sufficiently small $\dk$:
+\begin{align*}
+\dk \le \frac{\beta^2\|g_{\text{low}}\|^2}{\epsilon_g^2} 
+\Longrightarrow \dk^{\frac 1 2 } \le \frac{\beta\|\gik\|}{\epsilon_g}
+\Longrightarrow \beta \ge \frac{\epsilon_{g}\dk^{\frac 1 2}}{\|\gik\|}
+\Longrightarrow \beta \ge \frac{\epsilon_{g}\dk^{\frac 1 2}}{\|\gik\|}
+\Longrightarrow \beta\dk^{\frac 3 2} \ge \frac{\epsilon_{g}\dk^2}{\|\gik\|} \\
+\Longrightarrow -s^T\hgik \ge \frac{\epsilon_{g}\dk^2}{\|\gik\|} 
+\Longrightarrow -s^T\gik \ge \epsilon_{g}\dk^2|\nu^T s|
+\Longrightarrow -s^T\gik \ge -\epsilon_{g}\dk^2\nu^T s \\
+\Longrightarrow -s^T\gik + \epsilon_{g}\dk^2\nu^T s \ge 0
+\Longrightarrow -\nabla c_i(\xk)^T s \ge 0.
+\end{align*}
+
+Thus, the entire cone $\fik$ is feasible with respect to the linearization of the constraint $c_i$ for sufficiently small $\dk$.
+
+
+
+
+\color{red}
+
+
+
+% \dk^2 \le \frac{\|\gik\| -\delta e } {2\epsilon_{g} + \beta \|\gik\|} \\
+% \left(2\epsilon_{g} + \beta \|g^i\|\right)\dk^2 - \|\gik\|\le -\delta e \\
+% 2\epsilon_{g}\dk^2 + \|\gik\|(\beta \dk^2 - 1)\le -\delta e \\
+% (\epsilon_{g}\dk^2\nu)^T (s - \hgik) + \|\gik\|({\hat g}^i)^T(s - \hgik)\le -\delta e \\
+% (\gik + \epsilon_{g}\dk^2\nu)^T (s - \hgik) \le -\delta e \\
+% -\nabla c_i(\xk)^T s \ge -\delta e
+
+
+Alternatively,
 \begin{align*}
 \dk \le \sqrt{\frac{\sqrt{n}}{\epsilon_gg_{\text{hi}}}} \\
 \dk^2 \le \frac{\sqrt{n}}{\epsilon_g\|\gik\|} \\
@@ -127,16 +226,76 @@ There exists a $\nu \in \rn$, $\|\nu\|=1$ such that
 |m_{c_i}(\xk)|\|\gik\| \le \frac{2\sqrt{n}}{\|\gik\|^2} \dk(\gik + \epsilon_g\nu\dk^2)^T \gik\\
 |m_{c_i}(\xk)|\|\gik\| \le \frac{2\sqrt{n}}{\|\gik\|^2}\dk \nabla c_i(\xk) ^T \gik\\
 \|\xk - \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik- \xk\| \le \frac{2\sqrt{n}}{\|\gik\|^2}\dk  \le \frac{2\sqrt{n}}{g_{\text{low}}^2}\dk \\
+\|z^{\star} - \xk\| \le \frac{2\sqrt{n}}{\|\gik\|^2}\dk  \le \frac{2\sqrt{n}}{g_{\text{low}}^2}\dk \\
 \end{align*}
 
-We also know that there is an $M$ such that
+We also know that
 \begin{align*}
-\left\|\xk - \frac{m_{c_i}(\xk)}{\|\gik\|}\hgik - \xk - \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik\right\| \le M\left\|\xk - \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik- \xk\right\|^2
-\le \frac{4Mn}{g_{\text{low}}^4}\dk^2
+\left\|\xk - \frac{m_{c_i}(\xk)}{\|\gik\|}\hgik - \xk + \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik\right\| \le h_{\text{hi}}\left\|\xk - \frac{c_i(\xk)}{\nabla c_i(\xk) ^T \gik}\gik- \xk\right\|^2
+\le \frac{4h_{\text{hi}}n}{g_{\text{low}}^4}\dk^2 \\
+\|z^{\star} - \zik\| \le \|z^{\star} - \xk\|^2 \le \frac{4h_{\text{hi}}n}{g_{\text{low}}^4}\dk^2 \\
 \end{align*}
 
 
+However, 
+\begin{align*}
+\left\|\xk + \left(1 - \dk^{\frac 3 2 }\alpha\right)(\zik - \xk) - \zik\right\| \\
+=\left\|\left(1 - \dk^{\frac 3 2 }\alpha\right)(\zik - \xk) - (\zik - \xk)\right\| \\
+=\|\xk - \zik\|\left|\left(1 - \dk^{\frac 3 2 }\alpha\right) - 1\right| \\
+=\dk^{\frac 3 2 }\alpha\|\xk - \zik\| \\
+\end{align*}
+and
+\begin{align*}
+\left\|\xk + \left(1 -  \dk^{\frac 3 2 }\alpha\right)(\zik - \xk) - \xk\right\| = \left(1 - \alpha\dk^{\frac 3 2 }\right)\|\xk - \zik\|.\\
+\end{align*}
 
+
+% \le \sqrt{n} \dk^{\frac 3 2 }\alpha\dk \\
+
+
+\color{black}
+
+
+
+% 
+% 
+% 
+% 
+% 
+% Thus, for sufficiently small $\dk$, we know that
+% \begin{align*}
+% \left(1 - \dk^{\frac 3 2 }\alpha\right)\frac{m_{c_i}(\xk)}{\|\gik\|} \le  \\
+% \le \left(1 - \dk^{\frac 3 2 }\alpha\right)\dk \le \frac{4h_{\text{hi}}n}{g_{\text{low}}^4}\dk^2 \\
+% \end{align*}
+% \begin{align*}
+% \left(1 - \dk^{\frac 3 2 }\alpha\right)\frac{m_{c_i}(\xk)}{\|\gik\|^2}\gik \ge \frac{4h_{\text{hi}}n}{g_{\text{low}}^4}\dk^2 \\
+% \left(1 - \dk^{\frac 3 2 }\alpha\right)\frac{m_{c_i}(\xk)}{\|\gik\|} \ge \|\zik - z^{\star}\| \\
+% \left(1 - \dk^{\frac 3 2 }\alpha\right)\sqrt{n}\dk \ge \|\zik - z^{\star}\| \\
+% \end{align*}
+% 
+% \begin{align*}
+% \|\zik - \xk\| \le \|\zik - z^{\star}\| + \|z^{\star}- \xk\|
+% \end{align*}
+% 
+% But
+% \begin{align*}
+% \|z^{\star} - \xk\| = \|z^{\star} - \zik\| + \|\zik - \xk\| \\
+% \|\zik - \xk\| \le \|z^{\star} - \xk\| \\
+% \end{align*}
+% 
+% 
+% \begin{align*}
+% \|\xk + \left(1 - \dk^{\frac 3 2 }\alpha\right)\left(\zik - \xk\right) -\xk\| \le \|\xk - c_ -\xk\|\\
+% \left| \right|
+% \end{align*}
+% 
+% 
+% \begin{align*}
+% c_i(\xk) + \nabla c_i(\xk)^T(\xk - t \gik - \xk) = 0 \\
+% c_i(\xk) - t \nabla c_i(\xk)^T\gik = 0 \\
+% \frac{c_i(\xk)}{\nabla c_i(\xk)^T\gik} = t \\
+% \end{align*}
+% 
 % |m_{c_i}(\xk)| \le \dk^2\left(\delta \|\gik\| + \epsilon_g\right) \\
 % \frac{|m_{c_i}(\xk)|}{\|\gik\|} \le \dk^2\left(\delta + \frac{\epsilon_g}{\|\gik\|}\right) \\
 % \sqrt{n}\dk \le \dk^2\left(\delta + \frac{\epsilon_g}{\|\gik\|}\right) \\
@@ -170,18 +329,139 @@ We also know that there is an $M$ such that
 % \nabla c_i(\xk)^T(- t\frac{\nabla m_{c_i}(\xk)}{\|\nabla m_{c_i}(\xk)\|} + s) \le \delta t \\
 % \end{align*}
 
+\end{proof}
+
+\begin{theorem}
+For sufficiently small $\dk$, the set $\fcki \subseteq \fik$ for all $1\le i \le m$.
+\end{theorem}
+
+
+\begin{proof}
+Fix some $1\le i \le m$.
+Letting $\dk \le 1$, we see that $\xk \in \fik$:
 \begin{align*}
-\dk^2 \le \frac{\|\gik\| -\delta e } {2\epsilon_{g} + \beta \|\gik\|} \\
-\left(2\epsilon_{g} + \beta \|g^i\|\right)\dk^2 - \|\gik\|\le -\delta e \\
-2\epsilon_{g}\dk^2 + \|\gik\|(\beta \dk^2 - 1)\le -\delta e \\
-(\epsilon_{g}\dk^2\nu)^T (s - \hgik) + \|\gik\|({\hat g}^i)^T(s - \hgik)\le -\delta e \\
-(\gik + \epsilon_{g}\dk^2\nu)^T (s - \hgik) \le -\delta e \\
-\nabla c_i(\xk)^T (s - \hgik) \le -\delta e
+\xk = \xk + \left(1 - \alpha\dk^{\frac 3 2}\right)(\zik - \xk) - \left(1 - \alpha\dk^{\frac 3 2}\right)(\zik - \xk) \\
+\end{align*}
+where
+\begin{align*}
+\frac{\left(1 - \alpha\dk^{\frac 3 2}\right)(\zik - \xk)}{\left\|\left(1 - \alpha\dk^{\frac 3 2}\right)(\zik - \xk)\right\|}^T\hgik =\frac{-m_{c_i}(\xk)}{\|\gik\|}\frac{1}{\|\zik - \xk\|} = 1 \ge \beta\\
 \end{align*}
 
+% = -\frac{m_{c_i}(\xk)}{\|\gik\|}\frac{\|\gik\|}{m_{c_i}(\xk)}
+
+Now, let $\dk$ be sufficiently small that $-(\huk)^T\hgik \ge \beta\dk^{\frac 3 2}$.
+This is possible, because $ -(\huk)^T\hgik \ge \theta^{\text{min}}_k \ge \theta^{\text{min}} > 0$.
+
+Then
+\begin{align*}
+\left\{s\quad | \quad s^T(-\hgik)\ge\dk^{\frac 3 2}\beta\|s\| \right\}  \subseteq \left\{s\quad | \quad s^T\huk\ge\beta^{\star}\|s\| \right\}
+\end{align*}
+by \cref{cone_subset_cone} with $u^1 \gets \hat u$, $u^2 \gets -\hgik$, $\beta \gets \beta \dk^{\frac 3 2 }$ because:
+\begin{align*}
+\left(-\beta\dk^{\frac 3 2}(\huk)^T\hgik + \sqrt{(1 - \dk^3\beta^2)\left(1 - \left((\hgik)^T\hat u^{(k)}\right)^2\right)}\right) \\
+\le \max_i \left(-\beta\dk^{\frac 3 2}(\huk)^T{\hgik} + \sqrt{(1 - \dk^3\beta^2)\left(1 - \left((\hgik)^T\huk\right)^2\right)}\right) \\
+\le \beta\dk^{\frac 3 2} \max_i\{-(\huk)^T\hgik\} + \sqrt{(1 - \dk^3\beta^2)\left(1 - \left((\max_i(-\hgik)^T\huk\right)^2\right)} \\
+= \beta\dk^{\frac 3 2} \theta^{\text{max}}_k + \sqrt{(1 - \dk^3\beta^2)\left(1 - (\theta^{\text{max}}_k) ^2\right)} = \beta^{\star}
+\end{align*}
+Thus, $\fcki \subseteq \fik$.
+\end{proof}
+
+\begin{theorem}
+For sufficiently small $\dk$, $\fcki \ne \emptyset$, $\fcki \cap B_{\infty}(\xk, \dk) \subseteq \f$, and the cone contains one point on the boundary of $B_{\infty}(\xk, \dk)$.
+\end{theorem}
+\begin{proof}
+As $\dk \to 0$, $\bsk \to \sqrt{1 - (\theta^{\text{max}}_k) ^2} \ge \bs > 0$. Also, the ray $\xk + t \huk$ is within this cone.
+\end{proof}
+
+
+
+\begin{theorem}
+\label{ellipse_in_cone}
+Let $r \le \delta$.
+Then $\{x \in \rn | f_e(\delta, r, \theta; x) \le 0\} \subseteq \{tx\in\rn| e_1^T x \ge \theta,\|x\|=1, t>0\}$.
+\end{theorem}
+
+
+\begin{proof}
+Let $x$ be such that $f_e(\delta, r, \theta, x) \le 0$.
+First, note that
+\begin{align*}
+\Longrightarrow (e_1^Tx - \frac 1 2 \delta )^2\ge 0\\
+\Longrightarrow (e_1^Tx)^2 + e_1^Tx\delta  - \frac 1 4 \delta^2 \ge 0\\
+\Longrightarrow 0 \le 2(e_1^Tx)^2 + 2e_1^Tx\delta  - \frac 1 2 \delta^2\\
+\Longrightarrow \frac 1 2 \delta^2 - (e_1^Tx)^2 + 2e_1^Tx\delta - \delta^2 \le (e_1^Tx)^2 \\
+\Longrightarrow \frac 1 2 \delta^2 - \left((e_1^Tx)^2 - 2e_1^Tx\delta + \delta^2\right) \le (e_1^Tx)^2 \\
+\Longrightarrow \frac 1 2 \delta^2 - (e_1^Tx - \delta)^2 \le (e_1^Tx)^2.
+\end{align*}
+
+We use this inequality to show:
+\begin{align*}
+f_e(\delta, r, \theta, x) \le 0 \\
+\Longrightarrow (x - \delta e_1)^T\bigg(\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
+\end{bmatrix}\bigg)(x - \delta e_1) \le \frac 1 2 r^2 \\
+\Longrightarrow (e_1^Txe_1 + (x - e_1^Txe_1) - \delta e_1)^T\bigg(\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
+\end{bmatrix}\bigg)(e_1^Txe_1 + (x - e_1^Txe_1) - \delta e_1) \le \frac 1 2 r^2 \\
+\Longrightarrow
+(e_1^Tx - \delta)^2 + \frac{\theta^2}{1 - \theta^2}\|x - e_1^Tx e_1\|^2 \le \frac 1 2 r^2 \\
+\Longrightarrow
+(e_1^Tx - \delta)^2 + \frac{\theta^2}{1 - \theta^2}(\|x\|^2 - (e_1^Tx)^2) \le \frac 1 2 \delta^2 \\
+\Longrightarrow\frac{\theta^2}{1 - \theta^2}(\|x\|^2 - (e_1^Tx)^2) \le \frac 1 2 \delta^2 - (e_1^Tx - \delta)^2\\
+\Longrightarrow\|x\|^2 - (e_1^Tx)^2 \le \frac{1 - \theta^2}{\theta^2}(e_1^Tx)^2 \\
+\Longrightarrow\|x\|^2 \le \frac 1 {\theta^2}(e_1^Tx)^2 \\
+\Longrightarrow e_1^T\frac{x}{\|x\|} \ge \theta
+\end{align*}
+\end{proof}
+
+\begin{theorem}
+\label{ellipse_fits}
+We have that $f_e(\delta, \sqrt{2}\delta, \theta; 0) = 0$ and $f_e(\delta, \delta, \theta; (1 + \frac{1}{\sqrt{2}}) \delta e_1) = 0$
+\end{theorem}
+\begin{proof}
+
+We have
+\begin{align*}
+f_e(\delta, \sqrt{2}\delta, \theta; 0) =(0 - \delta e_1)^T\bigg(\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
+\end{bmatrix}\bigg)(0 - \delta e_1) - \frac 1 2 (\sqrt 2 \delta)^2
+=\delta^2 - \delta^2 = 0\\
+\end{align*}
+and
+\begin{align*}
+f_e(\delta, \delta, \theta; (1 + \frac{1}{\sqrt{2}}) \delta e_1) =\frac {\delta}{\sqrt{2}}e_1^T\bigg(\begin{bmatrix}
+1 & \boldsymbol0^T \\
+\boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
+\end{bmatrix}\bigg)\frac {\delta}{\sqrt{2}}e_1 - \frac 1 2 \delta^2
+=\frac 1 2 \delta^2 - \frac 1 2 \delta^2 = 0.\\
+\end{align*}
 
 \end{proof}
 
+\begin{theorem}
+For sufficiently small $\dk$, the ellipse $E_k \subseteq \f$ has a bounded condition number, and its major axis is atleast $\frac 1 2 \dk$
+\end{theorem}
+
+\begin{proof}
+Note that the condition number is given by
+\begin{align*}
+\frac{\max\{1, \frac{\bs^2}{1 - \bs^2}\}}{\min\{1, \frac{\bs^2}{1 - \bs^2}\}}
+\end{align*}
+because the condition number of a matrix is not affected by rotations.
+
+We have already shown that the cone $\fcki \cap B_{\infty}(\xk, \dk) \subset \f$.
+By construction, the ellipse has been shifted to put $\xk$ at the origin and rotated by $R$ to put $\hat u$ along the x-axis.
+Thus, by \cref{ellipse_in_cone}, we know that $E_k \subseteq \fcki$.
+We know that $t_k > \dk$ because it measures the distance from $\xk$ to some point on the boundary of $B_{\infty}(\xk, \dk)$.
+Also, we know from \cref{ellipse_fits} that the ellipse can be scaled by $2$ to include $\xk$, and extends by $\frac 1 2 t_k$ along $\huk$.
+Finally, we know that it does not travel more than $\frac 1 2 t_k$, \color{red} which is well away from the boundary of $B_{\infty}(\xk, \dk)$ \color{black}.
+\end{proof}
+
+
+\color{red}
 
 \begin{theorem}
 Suppose that there exists an $M$ such that $\|\xsk - \xk\| \le M$, and a $\delta > 0$ such that $\theta^{\text{min}}_k \ge \delta$.
@@ -245,48 +525,9 @@ Thus, $B(\xk, \dk) \cap \fcko \subseteq B(\xk, \dk) \cap \left(\cap_i \fik \righ
 \end{proof}
 
 
-\begin{theorem}
-Let $r \le \delta$.
-Then $\{x \in \rn | f_e(\delta, r, \theta; x) \le 0\} \subseteq \{tx\in\rn| e_1^T x \ge \theta,\|x\|=1, t>0\}$.
-\end{theorem}
 
 
-
-
-\begin{proof}
-Let $x$ be such that $f_e(\delta, r, \theta, x) \le 0$.
-First, note that
-\begin{align*}
-\Longrightarrow (e_1^Tx - \frac 1 2 \delta )^2\ge 0\\
-\Longrightarrow (e_1^Tx)^2 + e_1^Tx\delta  - \frac 1 4 \delta^2 \ge 0\\
-\Longrightarrow 0 \le 2(e_1^Tx)^2 + 2e_1^Tx\delta  - \frac 1 2 \delta^2\\
-\Longrightarrow \frac 1 2 \delta^2 - (e_1^Tx)^2 + 2e_1^Tx\delta - \delta^2 \le (e_1^Tx)^2 \\
-\Longrightarrow \frac 1 2 \delta^2 - \left((e_1^Tx)^2 - 2e_1^Tx\delta + \delta^2\right) \le (e_1^Tx)^2 \\
-\Longrightarrow \frac 1 2 \delta^2 - (e_1^Tx - \delta)^2 \le (e_1^Tx)^2.
-\end{align*}
-
-We use this inequality to show:
-\begin{align*}
-f_e(\delta, r, \theta, x) \le 0 \\
-\Longrightarrow (x - \delta e_1)^T\bigg(\begin{bmatrix}
-1 & \boldsymbol0^T \\
-\boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
-\end{bmatrix}R\bigg)(x - \delta e_1) \le \frac 1 2 r^2 \\
-\Longrightarrow (e_1^Txe_1 + (x - e_1^Txe_1) - \delta e_1)^T\bigg(\begin{bmatrix}
-1 & \boldsymbol0^T \\
-\boldsymbol 0 & \frac{\theta^2}{1 - \theta^2} \boldsymbol I \\
-\end{bmatrix}R\bigg)(e_1^Txe_1 + (x - e_1^Txe_1) - \delta e_1) \le \frac 1 2 r^2 \\
-\Longrightarrow
-(e_1^Tx - \delta)^2 + \frac{\theta^2}{1 - \theta^2}\|x - e_1^Tx e_1\|^2 \le \frac 1 2 r^2 \\
-\Longrightarrow
-(e_1^Tx - \delta)^2 + \frac{\theta^2}{1 - \theta^2}(\|x\|^2 - (e_1^Tx)^2) \le \frac 1 2 \delta^2 \\
-\Longrightarrow\frac{\theta^2}{1 - \theta^2}(\|x\|^2 - (e_1^Tx)^2) \le \frac 1 2 \delta^2 - (e_1^Tx - \delta)^2\\
-\Longrightarrow\|x\|^2 - (e_1^Tx)^2 \le \frac{1 - \theta^2}{\theta^2}(e_1^Tx)^2 \\
-\Longrightarrow\|x\|^2 \le \frac 1 {\theta^2}(e_1^Tx)^2 \\
-\Longrightarrow e_1^T\frac{x}{\|x\|} \ge \theta
-\end{align*}
-\end{proof}
-
+\color{red}
 
 Because $\fcko$ is feasible, and $\xk \in \fcko$ we know that $ \fcki $ is feasible.
 But then, for any $\delta > 0$, the set is also feasible:
@@ -294,18 +535,6 @@ But then, for any $\delta > 0$, the set is also feasible:
 B_{\infty}(\xk, \dk) \cap \{x \in \rn | \quad f_e(\delta, r, \theta, R(x - \xk)) \le 0\}
 \end{align*}
 Choose $\delta$ so that this hits the edge of the trust region.
-
-
-\begin{theorem}
-
-For sufficiently small $\dk$, the set $\fcki \cap B_{\infty}(\xk, \dk)$ is feasible.
-
-\end{theorem}
-
-
-\begin{proof}
-
-\end{proof}
 
 
 
